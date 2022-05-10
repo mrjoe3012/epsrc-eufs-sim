@@ -42,7 +42,7 @@ def generate_launch_description():
                                           " used"),
 
         DeclareLaunchArgument(name='commandMode',
-                              default_value='acceleration',
+                              default_value='velocity',
                               description="Determines the vehicle control "
                                           "mode (acceleration or velocity)"),
 
@@ -67,7 +67,7 @@ def generate_launch_description():
                                           "transform"),
 
         DeclareLaunchArgument(name='pub_ground_truth',
-                              default_value='true',
+                              default_value='false',
                               description="Condition to publish ground "
                                           "truth"),
 

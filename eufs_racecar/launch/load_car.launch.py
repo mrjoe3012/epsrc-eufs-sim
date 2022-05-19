@@ -136,10 +136,10 @@ def generate_launch_description():
                                           'ros_can_sim GUI and EUFS Robot '
                                           'Steering GUI)'),
 
-        DeclareLaunchArgument('namespace', default_value='eufs',
+        DeclareLaunchArgument('namespace', default_value='ads-dv',
                               description='Namespace of the gazebo robot'),
 
-        DeclareLaunchArgument('robot_name', default_value='eufs',
+        DeclareLaunchArgument('robot_name', default_value='ads-dv',
                               description='The name of the robot (must be '
                                           'directory in eufs_racecar/robots '
                                           'called '

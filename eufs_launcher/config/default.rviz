@@ -218,6 +218,7 @@ Visualization Manager:
         Value: /zed/left/image_rect_color
       Value: false
       Visibility:
+        "": true
         Fusion Cones: true
         Grid: false
         Ground Truth Cones: true
@@ -246,7 +247,6 @@ Visualization Manager:
       Class: ugrdv_rviz_plugins/WeightedPathArray
       Color: 25; 255; 0
       Enabled: true
-      Line Width: 0.029999999329447746
       Name: WeightedPathArray
       Offset:
         X: 0
@@ -259,6 +259,18 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /ugrdv/visualisation/path
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /ugrdv/visualisation/perception/camera_cones
       Value: true
   Enabled: true
   Global Options:
@@ -303,7 +315,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/ThirdPersonFollower
-      Distance: 7
+      Distance: 18.27237892150879
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -318,10 +330,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5049999356269836
+      Pitch: 0.48000025749206543
       Target Frame: <Fixed Frame>
       Value: ThirdPersonFollower (rviz_default_plugins)
-      Yaw: 3.1115894317626953
+      Yaw: 3.121587038040161
     Saved:
       - Class: rviz_default_plugins/ThirdPersonFollower
         Distance: 7

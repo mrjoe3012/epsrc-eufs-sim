@@ -152,7 +152,7 @@ Visualization Manager:
       Enabled: true
       Name: Fusion Cones
       Namespaces:
-        {}
+        "": true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -218,10 +218,10 @@ Visualization Manager:
         Value: /zed/left/image_rect_color
       Value: false
       Visibility:
-        "": true
         Fusion Cones: true
         Grid: false
         Ground Truth Cones: true
+        MarkerArray: true
         RobotModel: true
         Value: true
         Velodyne Points: false
@@ -264,7 +264,7 @@ Visualization Manager:
       Enabled: true
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -275,7 +275,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_footprint
+    Fixed Frame: base_link
     Frame Rate: 30
   Name: root
   Tools:

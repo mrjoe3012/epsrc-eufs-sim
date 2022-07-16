@@ -60,6 +60,16 @@
       <perceptionCameraDepthNoiseParameterB>0.2106</perceptionCameraDepthNoiseParameterB>
       <perceptionLidarNoise>0.03 0.03 0.0</perceptionLidarNoise>
       <pubGroundTruth>$(arg pub_ground_truth)</pubGroundTruth>
+
+      <perceptionCameraNoisePercentage>1.0</perceptionCameraNoisePercentage>
+      <!-- The following parameters modify simulated perception to simulate how our software might fail to detect cones -->
+      <!-- They determine the 1/n probability that cones will be detected by our software (set to 1 for always detected)-->
+      <seeBlueConeProbability>1</seeBlueConeProbability>
+      <seeYellowConeProbability>1</seeYellowConeProbability>
+      <seeSmallOrangeConeProbability>1</seeSmallOrangeConeProbability>
+      <seeLargeOrangeConeProbability>1</seeLargeOrangeConeProbability>
+      <seeUnknownColourConeProbability>1</seeUnknownColourConeProbability>   
+
     </plugin>
   </gazebo>
 

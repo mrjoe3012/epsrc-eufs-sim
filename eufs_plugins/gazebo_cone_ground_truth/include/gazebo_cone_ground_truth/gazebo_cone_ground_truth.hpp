@@ -125,6 +125,8 @@ class GazeboConeGroundTruth : public gazebo::ModelPlugin {
                         const char *default_description);
   double getDoubleParameter(sdf::ElementPtr _sdf, const char *element, double default_value,
                             const char *default_description);
+  int getIntParameter(sdf::ElementPtr _sdf, const char *element, int default_value,
+                            const char *default_description);
   std::string getStringParameter(sdf::ElementPtr _sdf, const char *element,
                                  std::string default_value, const char *default_description);
   ignition::math::Vector3d getVector3dParameter(sdf::ElementPtr _sdf, const char *element,
@@ -184,6 +186,11 @@ class GazeboConeGroundTruth : public gazebo::ModelPlugin {
   double camera_a;
   double camera_b;
   double camera_noise_percentage;
+  int see_blue_cone_probability;
+  int see_yellow_cone_probability;
+  int see_small_orange_cone_probability;
+  int see_large_orange_cone_probability;
+  int see_unknown_colour_cone_probability;
   bool lidar_on;
   bool pub_ground_truth;
 

@@ -34,6 +34,8 @@
 
 #include "gazebo_cone_ground_truth/gazebo_cone_ground_truth.hpp"
 
+#include <cstdlib>
+
 namespace gazebo_plugins {
 namespace eufs_plugins {
 
@@ -69,7 +71,19 @@ void GazeboConeGroundTruth::Load(gazebo::physics::ModelPtr _parent, sdf::Element
   this->camera_b =
       getDoubleParameter(_sdf, "perceptionCameraDepthNoiseParameterB", 0.2106, "0.2106");
   this->camera_noise_percentage =
-      getDoubleParameter(_sdf, "perceptionCameraNoisePercentage", 0.4, "0.4");
+      getDoubleParameter(_sdf, "perceptionCameraNoisePercentage", 1.0, "1.0");
+
+  this->see_blue_cone_probability = 
+    getIntParameter(_sdf, "seeBlueConeProbability", 1, "1");
+  this->see_yellow_cone_probability = 
+    getIntParameter(_sdf, "seeYellowConeProbability", 1, "1");
+  this->see_small_orange_cone_probability = 
+    getIntParameter(_sdf, "seeSmallOrangeConeProbability", 1, "1");
+  this->see_large_orange_cone_probability = 
+    getIntParameter(_sdf, "seeLargeOrangeConeProbability", 1, "1");
+  this->see_unknown_colour_cone_probability = 
+    getIntParameter(_sdf, "seeUnknownColourConeProbability", 1, "1");
+    
   this->lidar_on = getBoolParameter(_sdf, "lidarOn", true, "true");
 
   this->track_frame_ = getStringParameter(_sdf, "trackFrame", "map", "map");
@@ -319,21 +333,32 @@ void GazeboConeGroundTruth::addConeToConeArray(
   cone.point = point;
   cone.covariance = {0, 0, 0, 0};
 
+  int chanceToAdd;
   switch (cone_type) {
     case ConeType::blue:
-      ground_truth_cone_array.blue_cones.push_back(cone);
+      chanceToAdd = std::rand() % see_blue_cone_probability;
+      if (chanceToAdd == 0)
+        ground_truth_cone_array.blue_cones.push_back(cone);
       break;
     case ConeType::yellow:
-      ground_truth_cone_array.yellow_cones.push_back(cone);
+      chanceToAdd = std::rand() % see_yellow_cone_probability;
+      if (chanceToAdd == 0)
+        ground_truth_cone_array.yellow_cones.push_back(cone);
       break;
     case ConeType::orange:
-      ground_truth_cone_array.orange_cones.push_back(cone);
+      chanceToAdd = std::rand() % see_small_orange_cone_probability;
+      if (chanceToAdd == 0)
+        ground_truth_cone_array.orange_cones.push_back(cone);
       break;
     case ConeType::big_orange:
-      ground_truth_cone_array.big_orange_cones.push_back(cone);
+      chanceToAdd = std::rand() % see_large_orange_cone_probability;
+      if (chanceToAdd == 0)
+        ground_truth_cone_array.big_orange_cones.push_back(cone);
       break;
     case ConeType::unknown:
-      ground_truth_cone_array.unknown_color_cones.push_back(cone);
+      chanceToAdd = std::rand() % see_unknown_colour_cone_probability;
+      if (chanceToAdd == 0)
+        ground_truth_cone_array.unknown_color_cones.push_back(cone);
       break;
   }
 }
@@ -667,6 +692,17 @@ void GazeboConeGroundTruth::addNoiseToConeArray(
     cone_array[i].point.x += GaussianKernel(0, x_noise);
     cone_array[i].point.y += GaussianKernel(0, y_noise);
     cone_array[i].covariance = {x_noise, 0, 0, y_noise};
+
+  }
+  // simulate missed cones
+  int removeindex;
+  int maxAmountToErase = static_cast<int>(cone_array.size());
+  if (cone_array.size() >= 1) {
+    int amountToErase = std::rand() % maxAmountToErase; ////////
+    for (int i=0; i<amountToErase; i++) {
+      removeindex = std::rand() % cone_array.size();
+      cone_array.erase(cone_array.begin() + removeindex);
+    }
   }
 }
 
@@ -712,6 +748,19 @@ double GazeboConeGroundTruth::getDoubleParameter(sdf::ElementPtr _sdf, const cha
     return default_value;
   } else {
     return _sdf->GetElement(element)->Get<double>();
+  }
+}
+
+int GazeboConeGroundTruth::getIntParameter(sdf::ElementPtr _sdf, const char *element,
+                                                 int default_value,
+                                                 const char *default_description) {
+  if (!_sdf->HasElement(element)) {
+    RCLCPP_DEBUG(this->rosnode_->get_logger(),
+                 "state_ground_truth plugin missing <%s>, defaults to %s", element,
+                 default_description);
+    return default_value;
+  } else {
+    return _sdf->GetElement(element)->Get<int>();
   }
 }
 

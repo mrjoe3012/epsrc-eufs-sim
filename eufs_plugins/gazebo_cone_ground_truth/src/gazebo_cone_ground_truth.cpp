@@ -694,16 +694,6 @@ void GazeboConeGroundTruth::addNoiseToConeArray(
     cone_array[i].covariance = {x_noise, 0, 0, y_noise};
 
   }
-  // simulate missed cones
-  int removeindex;
-  int maxAmountToErase = static_cast<int>(cone_array.size());
-  if (cone_array.size() >= 1) {
-    int amountToErase = std::rand() % maxAmountToErase; ////////
-    for (int i=0; i<amountToErase; i++) {
-      removeindex = std::rand() % cone_array.size();
-      cone_array.erase(cone_array.begin() + removeindex);
-    }
-  }
 }
 
 double GazeboConeGroundTruth::GaussianKernel(double mu, double sigma) {

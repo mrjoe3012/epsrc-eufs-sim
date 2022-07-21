@@ -25,6 +25,8 @@
 // Main Include
 #include "gazebo_race_car_model/gazebo_ros_race_car.hpp"
 
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+
 // STD Include
 #include <algorithm>
 #include <fstream>
@@ -544,7 +546,12 @@ void RaceCarModelPlugin::publishTf() {
   transform_stamped.header.stamp.nanosec = _last_sim_time.nsec;
   transform_stamped.header.frame_id = _reference_frame;
   transform_stamped.child_frame_id = _robot_frame;
-  tf2::convert(transform, transform_stamped.transform);
+
+  geometry_msgs::msg::Transform msg_transform;
+
+  tf2::convert(transform, msg_transform);
+
+  transform_stamped.transform = msg_transform;
 
   _tf_br->sendTransform(transform_stamped);
 }

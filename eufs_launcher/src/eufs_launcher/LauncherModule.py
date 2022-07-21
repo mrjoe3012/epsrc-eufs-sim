@@ -256,37 +256,37 @@ class EUFSLauncher(Plugin):
         self._widget.findChild(QLabel, "ObjectNoiseToolTip").setVisible(False)
 
         # Read in default noise levels
-        self.set_noise_level(
-            float(self.default_config["eufs_launcher"]["object_noise_default"])
-        )
-        self.set_cone_noise_level(
-            float(self.default_config["eufs_launcher"]["cone_noise_default"])
-        )
-        self.set_color_noise_level(
-            float(self.default_config["eufs_launcher"]["color_noise_default"])
-        )
+        # self.set_noise_level(
+        #     float(self.default_config["eufs_launcher"]["object_noise_default"])
+        # )
+        # self.set_cone_noise_level(
+        #     float(self.default_config["eufs_launcher"]["cone_noise_default"])
+        # )
+        # self.set_color_noise_level(
+        #     float(self.default_config["eufs_launcher"]["color_noise_default"])
+        # )
 
         self.DEBUG_SHUTDOWN = False
 
         # Looping over all widgest to fix scaling issue via manual scaling
         # Scaling done via magically comparing the width to the 'default'
         # 1700 pixels
-        rec = QApplication.desktop().screenGeometry()
-        scaler_multiplier = rec.width() / 1700.0
-        for widget in self._widget.children():
-            if hasattr(widget, 'geometry'):
-                geom = widget.geometry()
-                new_width = (
-                    geom.width() * (scaler_multiplier) if not isinstance(
-                        widget, QLabel)
-                    else geom.width() * (scaler_multiplier) + 200
-                )
-                widget.setGeometry(
-                    geom.x() * scaler_multiplier,
-                    geom.y() * scaler_multiplier,
-                    new_width,
-                    geom.height() * (scaler_multiplier)
-                )
+        # rec = QApplication.desktop().screenGeometry()
+        # scaler_multiplier = rec.width() / 1700.0
+        # for widget in self._widget.children():
+        #     if hasattr(widget, 'geometry'):
+        #         geom = widget.geometry()
+        #         new_width = (
+        #             geom.width() * (scaler_multiplier) if not isinstance(
+        #                 widget, QLabel)
+        #             else geom.width() * (scaler_multiplier) + 200
+        #         )
+        #         widget.setGeometry(
+        #             geom.x() * scaler_multiplier,
+        #             geom.y() * scaler_multiplier,
+        #             new_width,
+        #             geom.height() * (scaler_multiplier)
+        #         )
 
         # If use_gui is false, we jump straight into launching the track
         # use_gui is a special variable set by `eufs_launcher.py`
@@ -340,89 +340,85 @@ class EUFSLauncher(Plugin):
             to_return.append(str(k))
         return list(to_return)
 
-    def get_noise_level(self):
-        """Returns the object noise slider's noise level."""
+    # def get_noise_level(self):
+    #     """Returns the object noise slider's noise level."""
 
-        noise_level_widget = self.NOISE_SLIDER
-        numerator = (1.0 * (
-            noise_level_widget.value() - noise_level_widget.minimum()))
-        denominator = (
-            noise_level_widget.maximum()
-            - noise_level_widget.minimum())
-        return numerator / denominator
+    #     noise_level_widget = self.NOISE_SLIDER
+    #     numerator = (1.0 * (
+    #         noise_level_widget.value() - noise_level_widget.minimum()))
+    #     denominator = (
+    #         noise_level_widget.maximum()
+    #         - noise_level_widget.minimum())
+    #     return numerator / denominator
 
-    def set_noise_level(self, new_noise_level):
-        """
-                Sets the object noise slider's level.
-                Code may look complicated, but it's really just inverting
-                get_noise_level to solve
-                for `noise_level_widget.value()`
-                """
-        noise_level_widget = self.NOISE_SLIDER
-        denominator = (
-            noise_level_widget.maximum()
-            - noise_level_widget.minimum())
-        numerator = new_noise_level * denominator
-        new_value = numerator + noise_level_widget.minimum()
-        noise_level_widget.setValue(
-            new_value
-        )
+    # def set_noise_level(self, new_noise_level):
+    #     """
+    #             Sets the object noise slider's level.
+    #             Code may look complicated, but it's really just inverting
+    #             get_noise_level to solve
+    #             for `noise_level_widget.value()`
+    #             """
+    #     noise_level_widget = self.NOISE_SLIDER
+    #     denominator = (
+    #         noise_level_widget.maximum()
+    #         - noise_level_widget.minimum())
+    #     numerator = new_noise_level * denominator
+    #     new_value = numerator + noise_level_widget.minimum()
+    #     noise_level_widget.setValue(float(new_value))
 
-    def get_cone_noise_level(self):
-        """Returns the cone noise slider's noise level."""
+    # def get_cone_noise_level(self):
+    #     """Returns the cone noise slider's noise level."""
 
-        noise_level_widget = self.CONE_NOISE_SLIDER
-        numerator = (1.0 * (
-            noise_level_widget.value() - noise_level_widget.minimum()))
-        denominator = (
-            noise_level_widget.maximum()
-            - noise_level_widget.minimum())
-        return self.MAX_CONE_NOISE * numerator / denominator
+    #     noise_level_widget = self.CONE_NOISE_SLIDER
+    #     numerator = (1.0 * (
+    #         noise_level_widget.value() - noise_level_widget.minimum()))
+    #     denominator = (
+    #         noise_level_widget.maximum()
+    #         - noise_level_widget.minimum())
+    #     return self.MAX_CONE_NOISE * numerator / denominator
 
-    def set_cone_noise_level(self, new_noise_level):
-        """
-                Sets the cone noise slider's level.
-                Code may look complicated, but it's really just inverting
-                get_cone_noise_level to solve
-                for `cone_noise_level_widget.value()`
-                """
-        noise_level_widget = self.CONE_NOISE_SLIDER
-        denominator = (
-            noise_level_widget.maximum()
-            - noise_level_widget.minimum())
-        numerator = new_noise_level * denominator / self.MAX_CONE_NOISE
-        new_value = numerator + noise_level_widget.minimum()
-        noise_level_widget.setValue(
-            new_value
-        )
+    # def set_cone_noise_level(self, new_noise_level):
+    #     """
+    #             Sets the cone noise slider's level.
+    #             Code may look complicated, but it's really just inverting
+    #             get_cone_noise_level to solve
+    #             for `cone_noise_level_widget.value()`
+    #             """
+    #     noise_level_widget = self.CONE_NOISE_SLIDER
+    #     denominator = (
+    #         noise_level_widget.maximum()
+    #         - noise_level_widget.minimum())
+    #     numerator = new_noise_level * denominator / self.MAX_CONE_NOISE
+    #     new_value = numerator + noise_level_widget.minimum()
+    #     noise_level_widget.setValue(new_value)
 
-    def get_color_noise_level(self):
-        """Returns the color noise slider's noise level."""
+    # def get_color_noise_level(self):
+    #     """Returns the color noise slider's noise level."""
 
-        noise_level_widget = self.COLOR_NOISE_SLIDER
-        numerator = (1.0 * (
-            noise_level_widget.value() - noise_level_widget.minimum()))
-        denominator = (
-            noise_level_widget.maximum()
-            - noise_level_widget.minimum())
-        return self.MAX_COLOR_NOISE * numerator / denominator
+    #     noise_level_widget = self.COLOR_NOISE_SLIDER
+    #     numerator = (1.0 * (
+    #         noise_level_widget.value() - noise_level_widget.minimum()))
+    #     denominator = (
+    #         noise_level_widget.maximum()
+    #         - noise_level_widget.minimum())
+    #     return self.MAX_COLOR_NOISE * numerator / denominator
 
-    def set_color_noise_level(self, new_noise_level):
-        """
-                Sets the color noise slider's level.
-                Code may look complicated, but it's really just inverting
-                get_color_noise_level to solve
-                for `color_noise_level_widget.value()`
-                """
-        noise_level_widget = self.COLOR_NOISE_SLIDER
-        denominator = (
-            noise_level_widget.maximum()
-            - noise_level_widget.minimum())
-        numerator = new_noise_level * denominator / self.MAX_COLOR_NOISE
-        new_value = numerator + noise_level_widget.minimum()
-        noise_level_widget.setValue(
-            new_value
-        )
+    # def set_color_noise_level(self, new_noise_level):
+    #     """
+    #             Sets the color noise slider's level.
+    #             Code may look complicated, but it's really just inverting
+    #             get_color_noise_level to solve
+    #             for `color_noise_level_widget.value()`
+    #             """
+    #     noise_level_widget = self.COLOR_NOISE_SLIDER
+    #     denominator = (
+    #         noise_level_widget.maximum()
+    #         - noise_level_widget.minimum())
+    #     numerator = new_noise_level * denominator / self.MAX_COLOR_NOISE
+    #     new_value = numerator + noise_level_widget.minimum()
+    #     noise_level_widget.setValue(
+    #         new_value
+    #     )
 
     def launch_button_pressed(self):
         """Launches Gazebo."""
@@ -459,9 +455,9 @@ class EUFSLauncher(Plugin):
         )
 
         # Get noise level
-        noise_level = self.get_noise_level()
-        cone_noise_level = self.get_cone_noise_level()
-        color_noise_level = self.get_color_noise_level()
+        # noise_level = self.get_noise_level()
+        # cone_noise_level = self.get_cone_noise_level()
+        # color_noise_level = self.get_color_noise_level()
         self.logger.info(
             "Launching " + track_to_launch + " With Noise Level: " + str(
                 noise_level))

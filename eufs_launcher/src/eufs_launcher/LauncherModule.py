@@ -340,7 +340,8 @@ class EUFSLauncher(Plugin):
             to_return.append(str(k))
         return list(to_return)
 
-    # def get_noise_level(self):
+    def get_noise_level(self):
+        return float(self.default_config["eufs_launcher"]["object_noise_default"])
     #     """Returns the object noise slider's noise level."""
 
     #     noise_level_widget = self.NOISE_SLIDER
@@ -366,7 +367,8 @@ class EUFSLauncher(Plugin):
     #     new_value = numerator + noise_level_widget.minimum()
     #     noise_level_widget.setValue(float(new_value))
 
-    # def get_cone_noise_level(self):
+    def get_cone_noise_level(self):
+        return float(self.default_config["eufs_launcher"]["cone_noise_default"])
     #     """Returns the cone noise slider's noise level."""
 
     #     noise_level_widget = self.CONE_NOISE_SLIDER
@@ -392,7 +394,8 @@ class EUFSLauncher(Plugin):
     #     new_value = numerator + noise_level_widget.minimum()
     #     noise_level_widget.setValue(new_value)
 
-    # def get_color_noise_level(self):
+    def get_color_noise_level(self):
+        return float(self.default_config["eufs_launcher"]["color_noise_default"])
     #     """Returns the color noise slider's noise level."""
 
     #     noise_level_widget = self.COLOR_NOISE_SLIDER
@@ -455,9 +458,9 @@ class EUFSLauncher(Plugin):
         )
 
         # Get noise level
-        # noise_level = self.get_noise_level()
-        # cone_noise_level = self.get_cone_noise_level()
-        # color_noise_level = self.get_color_noise_level()
+        noise_level = self.get_noise_level()
+        cone_noise_level = self.get_cone_noise_level()
+        color_noise_level = self.get_color_noise_level()
         self.logger.info(
             "Launching " + track_to_launch + " With Noise Level: " + str(
                 noise_level))

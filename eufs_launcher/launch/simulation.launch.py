@@ -13,6 +13,30 @@ from ament_index_python.packages import get_package_share_directory
 # must be kept seperate from
 # generate_launch_description, otherwise it is not possible to access the
 # parameters that are passed into the simulation
+TRACK = "track"
+VEHICLE_MODEL = "vehicleModel"
+COMMAND_MODE = "commandMode"
+VEHICLE_MODEL_CONFIG = "vehicleModelConfig"
+GAZEBO_GUI = "gazebo_gui"
+RVIZ = "rviz"
+PUBLISH_GT_TF = "publish_gt_tf"
+PUB_GROUND_TRUTH = "pub_ground_truth"
+LAUNCH_GROUP = "launch_group"
+SHOW_RQT_GUI = "show_rqt_gui"
+
+LAUNCH_ARGUMENTS = [
+	TRACK,
+	VEHICLE_MODEL,
+	COMMAND_MODE,
+	VEHICLE_MODEL_CONFIG,
+	GAZEBO_GUI,
+	RVIZ,
+	SHOW_RQT_GUI,
+	PUBLISH_GT_TF,
+	PUB_GROUND_TRUTH,
+	LAUNCH_GROUP
+]
+
 def launch_setup(context, *args, **kwargs):
     # Get arguments and store them so they can be passed into the simulation
     track = get_argument(context, 'track')
@@ -21,59 +45,66 @@ def launch_setup(context, *args, **kwargs):
                                     'launch', str(track) + '.launch')
     launch_description = AnyLaunchDescriptionSource(launch_file_path)
 
+    arguments = { k: get_argument(context, k) for k in LAUNCH_ARGUMENTS}.items()
+    print(arguments)
+
     return [
 
         # Launch the simulation
-        IncludeLaunchDescription(launch_description)
+        IncludeLaunchDescription(launch_description, launch_arguments=arguments)
     ]
 
 
 def generate_launch_description():
     return LaunchDescription([
 
-        DeclareLaunchArgument(name='track',
+        DeclareLaunchArgument(name=TRACK,
                               default_value='small_track',
                               description="Determines which track is "
                                           "launched"),
 
-        DeclareLaunchArgument(name='vehicleModel',
+        DeclareLaunchArgument(name=VEHICLE_MODEL,
                               default_value='DynamicBicycle',
                               description="Determines which vehicle model is"
                                           " used"),
 
-        DeclareLaunchArgument(name='commandMode',
+        DeclareLaunchArgument(name=COMMAND_MODE,
                               default_value='velocity',
                               description="Determines the vehicle control "
                                           "mode (acceleration or velocity)"),
 
-        DeclareLaunchArgument(name='vehicleModelConfig',
+        DeclareLaunchArgument(name=VEHICLE_MODEL_CONFIG,
                               default_value='configDry.yaml',
                               description="Determines the file from which "
                                           "the vehicle model parameters are "
                                           "read"),
 
-        DeclareLaunchArgument(name='gazebo_gui',
+        DeclareLaunchArgument(name=GAZEBO_GUI,
                               default_value='false',
                               description="Condition to launch the Gazebo "
                                           "GUI"),
 
-        DeclareLaunchArgument(name='rviz',
+        DeclareLaunchArgument(name=RVIZ,
                               default_value='true',
                               description="Condition to launch the Rviz GUI"),
 
-        DeclareLaunchArgument(name='publish_gt_tf',
+        DeclareLaunchArgument(name=SHOW_RQT_GUI,
+                              default_value='true',
+                              description="Condition to launch the RQT/command centre GUI"),
+
+        DeclareLaunchArgument(name=PUBLISH_GT_TF,
                               default_value='false',
                               description="Condition to use ground truth "
                                           "transform"),
 
-        DeclareLaunchArgument(name='pub_ground_truth',
+        DeclareLaunchArgument(name=PUB_GROUND_TRUTH,
                               default_value='false',
                               description="Condition to publish ground "
                                           "truth"),
 
         # Set to 'no_perception' to turn off the perception code and use
         # ground truth cones.
-        DeclareLaunchArgument(name='launch_group',
+        DeclareLaunchArgument(name=LAUNCH_GROUP,
                               default_value='default',
                               description="Determines which launch files are "
                                           "used in the state_machine node"),

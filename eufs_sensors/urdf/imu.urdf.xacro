@@ -30,29 +30,29 @@
             <gravity>true</gravity>
             <sensor name="imu_sensor" type="imu">
                 <always_on>true</always_on>
-                <update_rate>1000</update_rate>
+                <update_rate>25</update_rate>
                 <visualize>true</visualize>
                 <topic>__default_topic__</topic>
                 <imu>
                     <angular_velocity>
                         <x>
                             <noise type="gaussian">
-                                <mean>0.0</mean>
-                                <stddev>${noise}</stddev>
+                                <mean>-0.0010985</mean>
+                                <stddev>0.005756</stddev>
                             </noise>
                         </x>
 
                         <y>
                             <noise type="gaussian">
-                                <mean>0.0</mean>
-                                <stddev>${noise}</stddev>
+                                <mean>0.0007195</mean>
+                                <stddev>0.006750000000000001</stddev>
                             </noise>
                         </y>
 
                         <z>
                             <noise type="gaussian">
-                                <mean>0.0</mean>
-                                <stddev>${noise}</stddev>
+                                <mean>0.00027150000000000004</mean>
+                                <stddev>0.0010065</stddev>
                             </noise>
                         </z>
                     </angular_velocity>
@@ -60,22 +60,22 @@
                     <linear_acceleration>
                         <x>
                             <noise type="gaussian">
-                                <mean>0.0</mean>
-                                <stddev>${noise}</stddev>
+                                <mean>0.10101199999999999</mean>
+                                <stddev>0.0541795</stddev>
                             </noise>
                         </x>
 
                         <y>
                             <noise type="gaussian">
-                                <mean>0.0</mean>
-                                <stddev>${noise}</stddev>
+                                <mean>0.4020355</mean>
+                                <stddev>0.0331925</stddev>
                             </noise>
                         </y>
 
                         <z>
                             <noise type="gaussian">
-                                <mean>0.0</mean>
-                                <stddev>${noise}</stddev>
+                                <mean>-9.787434000000001</mean>
+                                <stddev>0.0325345</stddev>
                             </noise>
                         </z>
                     </linear_acceleration>

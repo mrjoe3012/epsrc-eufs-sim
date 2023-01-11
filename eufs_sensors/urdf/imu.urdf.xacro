@@ -60,22 +60,22 @@
                     <linear_acceleration>
                         <x>
                             <noise type="gaussian">
-                                <mean>0.10101199999999999</mean>
-                                <stddev>0.0541795</stddev>
+                                <mean>-0.0015709999999999997</mean>
+                                <stddev>0.0032233333333333333</stddev>
                             </noise>
                         </x>
 
                         <y>
                             <noise type="gaussian">
-                                <mean>0.4020355</mean>
-                                <stddev>0.0331925</stddev>
+                                <mean>-0.0026985833333333336</mean>
+                                <stddev>0.00370325</stddev>
                             </noise>
                         </y>
 
                         <z>
                             <noise type="gaussian">
-                                <mean>-9.787434000000001</mean>
-                                <stddev>0.0325345</stddev>
+                                <mean>-0.003742333333333334</mean>
+                                <stddev>0.0027795833333333336</stddev>
                             </noise>
                         </z>
                     </linear_acceleration>

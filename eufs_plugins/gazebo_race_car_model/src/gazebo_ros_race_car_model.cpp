@@ -636,7 +636,6 @@ void RaceCarModelPlugin::onCmd(const ackermann_msgs::msg::AckermannDriveStamped:
   _command_Q.push(msg);
   _cmd_time_Q.push(_world->SimTime());
   _last_cmd_time = _world->SimTime();
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 std::vector<double> RaceCarModelPlugin::ToQuaternion(std::vector<double> &euler) {

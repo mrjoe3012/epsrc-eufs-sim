@@ -89,6 +89,7 @@ def spawn_car(context, *args, **kwargs):
             parameters=[{
                 'robot_description': robot_description,
                 'rate': 200,
+                'use_sim_time' : True,
             }],
             arguments=[urdf_path],
             remappings=[('/joint_states', '/eufs/joint_states')]
@@ -102,6 +103,7 @@ def spawn_car(context, *args, **kwargs):
             parameters=[{
                 'robot_description': robot_description,
                 'rate': 200,
+                'use_sim_time' : True,
             }],
             remappings=[('/joint_states', '/eufs/joint_states')],
             arguments=['--ros-args', '--log-level', 'warn']

@@ -47,4 +47,9 @@ setup(
     license='MIT',
     tests_require=['pytest'],
     scripts=['scripts/eufs_tracks'],
+    entry_points={
+        'console_scripts' : [
+            'headless_track_generator = eufs_tracks.HeadlessTrackGenerator:main'
+        ],
+    },
 )

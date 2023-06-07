@@ -1,0 +1,16 @@
+headless_track_generator:
+  ros__parameters:
+    component_data_straight: 1.0
+    component_data_constant_turn: 0.7
+    component_data_hairpin_turn: 0.3
+    
+    generator_values_min_straight: 10.0
+    generator_values_max_straight: 80.0
+    generator_values_min_constant_turn: 10.0
+    generator_values_max_constant_turn: 25.0
+    generator_values_min_hairpin: 4.5
+    generator_values_max_hairpin: 10.0
+    generator_values_max_hairpin_pairs: 3
+    generator_values_max_length: 1500.0
+    generator_values_lax_generation: False
+    generator_values_track_width: 3.5

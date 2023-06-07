@@ -1,68 +1,101 @@
+#TODO: copyright header
+#TODO: customizable random seed
+#TODO: find out what lax generation is
+#TODO: save images to their own folder
 from os import path
+from rclpy.node import Node
+import rclpy
 from .TrackGenerator import TrackGenerator as Generator
 from .TrackGenerator import GeneratorContext
 from .ConversionTools import ConversionTools as Converter
 from ament_index_python import get_package_share_directory
 
-def generate_random_track(filename, show_image=False, save_image=False):
-    tracks_folder = get_package_share_directory("eufs_tracks")
-    is_lax_generator = False
-    component_data = {
-        "STRAIGHT" : 1.0,
-        "CONSTANT_TURN" : 0.7,
-        "HAIRPIN_TURN" : 0.3,
-    }
-    generator_values = {
-            "MIN_STRAIGHT": 10.0,
-            "MAX_STRAIGHT": 80.0,
-            "MIN_CONSTANT_TURN": 10.0,
-            "MAX_CONSTANT_TURN": 25.0,
-            "MIN_HAIRPIN": 4.5,
-            "MAX_HAIRPIN": 10.0,
-            "MAX_HAIRPIN_PAIRS": 3,
-            "MAX_LENGTH": 1500.0,
-            "LAX_GENERATION": is_lax_generator,
-            "TRACK_WIDTH": 3.5,
-            "COMPONENTS": component_data
+class HeadlessTrackGenerator(Node):
+    def __init__(self):
+        super().__init__("headless_track_generator")
+        self.get_logger().info("Starting headless track generator.")
+        self.declare_ros_parameters()
+        self._generator_values = self.read_ros_parameters()
+        self.get_logger().info(f"self._generator_values: {self._generator_values}")
+
+    def declare_ros_parameters(self):
+        self.declare_parameter("component_data_straight", 1.0)
+        self.declare_parameter("component_data_constant_turn", 0.7)
+        self.declare_parameter("component_data_hairpin_turn", 0.3)
+
+        self.declare_parameter("generator_values_min_straight", 10.0)
+        self.declare_parameter("generator_values_max_straight", 80.0)
+        self.declare_parameter("generator_values_min_constant_turn", 10.0)
+        self.declare_parameter("generator_values_max_constant_turn", 25.0)
+        self.declare_parameter("generator_values_min_hairpin", 4.5)
+        self.declare_parameter("generator_values_max_hairpin", 10.0)
+        self.declare_parameter("generator_values_max_hairpin_pairs", 3)
+        self.declare_parameter("generator_values_max_length", 1500.0)
+        self.declare_parameter("generator_values_lax_generation", False)
+        self.declare_parameter("generator_values_track_width", 3.5)
+
+    def read_ros_parameters(self):
+        component_data = {
+            "STRAIGHT" : self.get_parameter("component_data_straight").value,
+            "CONSTANT_TURN": self.get_parameter("component_data_constant_turn").value,
+            "HAIRPIN_TURN" : self.get_parameter("component_data_hairpin_turn").value,
         }
-
-    def failure_function():
-        print("Track generator has failed.")
-
-    with GeneratorContext(generator_values, failure_function):
-        print("Starting track generation")
-
-        xys, twidth, theight = Generator.generate()
-
-        im = Converter.convert(
-            "comps",
-            "csv",
-            filename,
-            params={
-                "track data": (xys, twidth, theight)
+        generator_values = {
+            "MIN_STRAIGHT": self.get_parameter("generator_values_min_straight").value,
+            "MAX_STRAIGHT": self.get_parameter("generator_values_max_straight").value,
+            "MIN_CONSTANT_TURN": self.get_parameter("generator_values_min_constant_turn").value,
+            "MAX_CONSTANT_TURN": self.get_parameter("generator_values_max_constant_turn").value,
+            "MIN_HAIRPIN": self.get_parameter("generator_values_min_hairpin").value,
+            "MAX_HAIRPIN": self.get_parameter("generator_values_max_hairpin").value,
+            "MAX_HAIRPIN_PAIRS": self.get_parameter("generator_values_max_hairpin_pairs").value,
+            "MAX_LENGTH": self.get_parameter("generator_values_max_length").value,
+            "LAX_GENERATION": self.get_parameter("generator_values_lax_generation").value,
+            "TRACK_WIDTH": self.get_parameter("generator_values_track_width").value,
+            "COMPONENTS": component_data
             }
-        )
+        return generator_values
 
-        csv_path = path.join(
-            tracks_folder,
-            f"csv/{filename}.csv"
-        )
+    def generate_random_track(self, filename, save_image=False):
+        tracks_folder = get_package_share_directory("eufs_tracks")
+        generator_values = self._generator_values
 
-        Converter.convert(
-            "csv",
-            "ALL",
-            csv_path,
-            params={"noise" : 0.001}
-        )
+        def failure_function():
+            print("Track generator has failed.")
 
-        print("Track gen complete")
+        with GeneratorContext(generator_values, failure_function):
+            print("Starting track generation")
 
-        if show_image == True: im.show()
-        if save_image == True: im.save(f"{filename}.png")
+            xys, twidth, theight = Generator.generate()
 
-def main():
-    for i in range(10):
-        generate_random_track("headless_" + str(i), save_image=True)
+            im = Converter.convert(
+                "comps",
+                "csv",
+                filename,
+                params={
+                    "track data": (xys, twidth, theight)
+                }
+            )
+
+            csv_path = path.join(
+                tracks_folder,
+                f"csv/{filename}.csv"
+            )
+
+            Converter.convert(
+                "csv",
+                "ALL",
+                csv_path,
+                params={"noise" : 0.001}
+            )
+
+            print("Track gen complete")
+
+            if save_image == True: im.save(f"{filename}.png")
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = HeadlessTrackGenerator()
+    rclpy.shutdown()
 
 if __name__ == "__main__":
     main()

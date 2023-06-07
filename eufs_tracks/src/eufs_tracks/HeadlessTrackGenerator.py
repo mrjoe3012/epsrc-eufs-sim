@@ -1,4 +1,17 @@
-#TODO: copyright header
+##===-- HeadlessTrackGenerator.py - HeadlessTrackGenerator -*- py -*-===##
+##
+## Part of the UGRDV Project, under the UGRACING DRIVERLESS PRIVATE LICENSE.
+## See the attached LICENSE.txt file in this projects upper most directory for 
+## license information.
+##
+## Copyright Joseph Agrane © 2023
+##
+##===----------------------------------------------------------------------===##
+###
+### \file
+### A headless interface to the EUFS Sim random track generator
+###
+##===----------------------------------------------------------------------===##
 #TODO: customizable random seed
 #TODO: find out what lax generation is
 #TODO: save images to their own folder

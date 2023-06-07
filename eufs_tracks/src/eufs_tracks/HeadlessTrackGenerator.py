@@ -12,12 +12,12 @@
 ### A headless interface to the EUFS Sim random track generator
 ###
 ##===----------------------------------------------------------------------===##
-#TODO: customizable random seed
 #TODO: find out what lax generation is
-#TODO: save images to their own folder
+#TODO: parameterize the number of tracks to generate
 from os import path
 from rclpy.node import Node
 import rclpy
+import random
 from .TrackGenerator import TrackGenerator as Generator
 from .TrackGenerator import GeneratorContext
 from .ConversionTools import ConversionTools as Converter
@@ -26,10 +26,11 @@ from ament_index_python import get_package_share_directory
 class HeadlessTrackGenerator(Node):
     def __init__(self):
         super().__init__("headless_track_generator")
+        random.seed(1)
         self.get_logger().info("Starting headless track generator.")
         self.declare_ros_parameters()
         self._generator_values = self.read_ros_parameters()
-        self.get_logger().info(f"self._generator_values: {self._generator_values}")
+        self.generate_random_track("joe3012_random_track_test", True)
 
     def declare_ros_parameters(self):
         self.declare_parameter("component_data_straight", 1.0)
@@ -70,6 +71,7 @@ class HeadlessTrackGenerator(Node):
 
     def generate_random_track(self, filename, save_image=False):
         tracks_folder = get_package_share_directory("eufs_tracks")
+        images_folder = path.join(tracks_folder, "image")
         generator_values = self._generator_values
 
         def failure_function():
@@ -103,7 +105,7 @@ class HeadlessTrackGenerator(Node):
 
             print("Track gen complete")
 
-            if save_image == True: im.save(f"{filename}.png")
+            if save_image == True: im.save(path.join(images_folder, f"{filename}.png"))
 
 def main(args=None):
     rclpy.init(args=args)

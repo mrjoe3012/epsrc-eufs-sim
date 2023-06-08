@@ -14,3 +14,9 @@ headless_track_generator:
     generator_values_max_length: 1500.0
     generator_values_lax_generation: False
     generator_values_track_width: 3.5
+
+    num_tracks_to_generate: 3
+
+    # Append to report.json the information about tracks which were generated.
+    write_report: True
+    report_filename: report.json

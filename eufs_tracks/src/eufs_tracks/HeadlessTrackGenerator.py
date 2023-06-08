@@ -13,10 +13,9 @@
 ###
 ##===----------------------------------------------------------------------===##
 #TODO: find out what lax generation is
-#TODO: parameterize the number of tracks to generate
-from os import path
+#TODO: logic to generate tracks and write a report
 from rclpy.node import Node
-import rclpy, random, time
+import rclpy, random, time, os, uuid, json
 from .TrackGenerator import TrackGenerator as Generator
 from .TrackGenerator import GeneratorContext
 from .ConversionTools import ConversionTools as Converter
@@ -29,19 +28,23 @@ class HeadlessTrackGenerator(Node):
         EUFS track generator and generating random tracks.
         """
         super().__init__("headless_track_generator")
-        self.get_logger().info("Starting headless track generator.")
+        self._pid = os.getpid()
         self._declare_ros_parameters()
         self._generator_values, self._node_params = self._read_ros_parameters()
-        self._initialise_rng(self._node_params["use_custom_seed"], self._node_params["custom_seed"])
+        self._initialise_rng(self._pid)
+        self._run()
+
+    def _run(self):
+        self._log_status()
+        tracks = self._generate_multiple_tracks(self._node_params["num_tracks_to_generate"], self._generator_values)
+        if self._node_params["write_report"] == True:
+            HeadlessTrackGenerator._write_report(self._node_params["report_filename"], tracks, self._rng_seed, self._pid, self._generator_values)
 
     def _declare_ros_parameters(self):
         """
         This function declares all of the parameters that it expects
         to receive from ROS.
         """
-        self.declare_parameter("use_custom_seed", False)
-        self.declare_parameter("custom_seed", 0)
-
         self.declare_parameter("component_data_straight", 1.0)
         self.declare_parameter("component_data_constant_turn", 0.7)
         self.declare_parameter("component_data_hairpin_turn", 0.3)
@@ -56,6 +59,10 @@ class HeadlessTrackGenerator(Node):
         self.declare_parameter("generator_values_max_length", 1500.0)
         self.declare_parameter("generator_values_lax_generation", False)
         self.declare_parameter("generator_values_track_width", 3.5)
+
+        self.declare_parameter("num_tracks_to_generate", 1)
+        self.declare_parameter("write_report", False)
+        self.declare_parameter("report_filename", "report.json")
 
     def _read_ros_parameters(self):
         """
@@ -83,47 +90,73 @@ class HeadlessTrackGenerator(Node):
             "COMPONENTS": component_data
             }
         other_params = {
-            "use_custom_seed" : self.get_parameter("use_custom_seed").value,
-            "custom_seed" : self.get_parameter("custom_seed").value
+            "num_tracks_to_generate" : self.get_parameter("num_tracks_to_generate").value,
+            "write_report" : self.get_parameter("write_report").value,
+            "report_filename" : self.get_parameter("report_filename").value,
         }
         return generator_values, other_params
 
-    def _initialise_rng(self, use_custom_seed: bool, custom_seed = 0):
+    def _initialise_rng(self, pid: int):
         """
-        Seed the random number generator either with system time or
-        with a custom seed.
-        
-        :param use_custom_seed: Whether or not to use the provided custom seed.
-        :param custom_seed: The custom seed to use.
+        Seeds the RNG with {pid}_{system_time} (hashed)
+
+        :param pid: The pid.
         """
-        if use_custom_seed == True:
-            random.seed(custom_seed)
-            self._rng_seed = custom_seed
-        else:
-            t = int(time.time())
-            random.seed(t)
-            self._rng_seed = t
+        seed = hash(f"{pid}_{int(time.time())}")
+        self._rng_seed = seed
+        random.seed(seed)
  
-    def _generate_random_track(self, filename: str, save_image=False):
+    def _log_status(self):
+        l = self.get_logger()
+        l.info(f"Running with pid: {self._pid}, seed; {self._rng_seed}")
+        l.info(f"Set to generate {self._node_params['num_tracks_to_generate']} tracks.")
+
+    def _write_report(filename, tracks_generated: list, seed_used: int, pid: int, params: dict):
+        path = os.path.join(
+            get_package_share_directory("eufs_tracks"),
+            filename
+        )
+        report = []
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                report = json.load(f)
+        report.append({
+            "pid" : pid,
+            "seed" : seed_used,
+            "tracks" : tracks_generated,
+            "parameters" : params
+        })
+        with open(path, "a") as f:
+            json.dump(report, f)
+
+    def _generate_multiple_tracks(self, num_tracks: int, params: dict):
+        track_names = []
+        for i in range(num_tracks):
+            track_name = f"{self._pid}_{uuid.uuid4().hex}"
+            try:
+                HeadlessTrackGenerator.generate_random_track(track_name, params)
+                track_names.append(track_name)
+            except RuntimeError:
+                self.get_logger().error(f"Track generation failed with the following parameters: {params}")
+        return track_names
+
+    def generate_random_track(filename: str, generator_values: dict):
         """
         This function interfaces with the EUFS random track generator
         to generate a random track and the associated files.
         
         :param filename: The name of the output files to be generated, minus the extension.
-        :param save_image: Whether or not the image file should be saved.
+        :param generator_values: A dictionary containing the parameters to use for generation.
+        :raises RuntimeError: Upon track generation failure.
         """
         tracks_folder = get_package_share_directory("eufs_tracks")
-        images_folder = path.join(tracks_folder, "image")
-        generator_values = self._generator_values
+        images_folder = os.path.join(tracks_folder, "image")
 
         def failure_function():
-            print("Track generator has failed.")
+            raise RuntimeError()
 
         with GeneratorContext(generator_values, failure_function):
-            print("Starting track generation")
-
             xys, twidth, theight = Generator.generate()
-
             im = Converter.convert(
                 "comps",
                 "csv",
@@ -132,22 +165,17 @@ class HeadlessTrackGenerator(Node):
                     "track data": (xys, twidth, theight)
                 }
             )
-
-            csv_path = path.join(
+            csv_path = os.path.join(
                 tracks_folder,
                 f"csv/{filename}.csv"
             )
-
             Converter.convert(
                 "csv",
                 "ALL",
                 csv_path,
                 params={"noise" : 0.001}
             )
-
-            print("Track gen complete")
-
-            if save_image == True: im.save(path.join(images_folder, f"{filename}.png"))
+            im.save(os.path.join(images_folder, f"{filename}.png"))
 
 def main(args=None):
     rclpy.init(args=args)

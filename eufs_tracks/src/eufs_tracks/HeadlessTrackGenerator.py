@@ -12,8 +12,6 @@
 ### A headless interface to the EUFS Sim random track generator
 ###
 ##===----------------------------------------------------------------------===##
-#TODO: find out what lax generation is
-#TODO: logic to generate tracks and write a report
 from rclpy.node import Node
 import rclpy, random, time, os, uuid, json
 from .TrackGenerator import TrackGenerator as Generator
@@ -38,7 +36,7 @@ class HeadlessTrackGenerator(Node):
         self._log_status()
         tracks = self._generate_multiple_tracks(self._node_params["num_tracks_to_generate"], self._generator_values)
         if self._node_params["write_report"] == True:
-            HeadlessTrackGenerator._write_report(self._node_params["report_filename"], tracks, self._rng_seed, self._pid, self._generator_values)
+            self._write_report(self._node_params["report_filename"], tracks, self._rng_seed, self._pid, self._generator_values)
 
     def _declare_ros_parameters(self):
         """
@@ -111,7 +109,16 @@ class HeadlessTrackGenerator(Node):
         l.info(f"Running with pid: {self._pid}, seed; {self._rng_seed}")
         l.info(f"Set to generate {self._node_params['num_tracks_to_generate']} tracks.")
 
-    def _write_report(filename, tracks_generated: list, seed_used: int, pid: int, params: dict):
+    def _write_report(self, filename, tracks_generated: list, seed_used: int, pid: int, params: dict):
+        """
+        Appends to a json report information about the tracks which were generated.
+        
+        :param filename: The output filename for the report json file.
+        :param tracks_generated: A list contianing the names of the tracks which were generated.
+        :param seed_used: The seed which was used to generate the tracks.
+        :param pid: The PID.
+        :param params: The parameters used to generate the tracks.
+        """
         path = os.path.join(
             get_package_share_directory("eufs_tracks"),
             filename
@@ -130,6 +137,13 @@ class HeadlessTrackGenerator(Node):
             json.dump(report, f)
 
     def _generate_multiple_tracks(self, num_tracks: int, params: dict):
+        """
+        Generates a specified number of tracks.
+        
+        :param num_tracks: The number of tracks to generate.
+        :param params: The parameters to send to the track generator.
+        :returns: A list containing the names of the generated tracks.
+        """
         track_names = []
         for i in range(num_tracks):
             track_name = f"{self._pid}_{uuid.uuid4().hex}"

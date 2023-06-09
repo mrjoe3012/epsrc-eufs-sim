@@ -123,18 +123,19 @@ class HeadlessTrackGenerator(Node):
             get_package_share_directory("eufs_tracks"),
             filename
         )
-        new_report = os.path.exists(path)
-        with open(path, "r+") as f:
+        new_report = not os.path.exists(path)
+        with open(path, "r+") if not new_report else open(path, "w") as f:
             report = []
             if not new_report:
                 report = json.load(f)
+                f.truncate(0)
+                f.seek(0)
             report.append({
                 "pid" : pid,
                 "seed" : seed_used,
                 "tracks" : tracks_generated,
                 "parameters" : params
             })
-            f.truncate(0)
             json.dump(report, f)
 
     def _generate_multiple_tracks(self, num_tracks: int, params: dict):

@@ -124,7 +124,7 @@ class HeadlessTrackGenerator(Node):
             filename
         )
         new_report = os.path.exists(path)
-        with open(path, "a") as f:
+        with open(path, "r+") as f:
             report = []
             if not new_report:
                 report = json.load(f)
@@ -134,6 +134,7 @@ class HeadlessTrackGenerator(Node):
                 "tracks" : tracks_generated,
                 "parameters" : params
             })
+            f.truncate(0)
             json.dump(report, f)
 
     def _generate_multiple_tracks(self, num_tracks: int, params: dict):

@@ -4,18 +4,18 @@ headless_track_generator:
     component_data_constant_turn: 0.7
     component_data_hairpin_turn: 0.3
     
-    generator_values_min_straight: 15.0
-    generator_values_max_straight: 40.0
-    generator_values_min_constant_turn: 10.0
-    generator_values_max_constant_turn: 25.0
-    generator_values_min_hairpin: 4.5
-    generator_values_max_hairpin: 9.0
-    generator_values_max_hairpin_pairs: 3
+    generator_values_min_straight: 35.0
+    generator_values_max_straight: 75.0
+    generator_values_min_constant_turn: 15.0
+    generator_values_max_constant_turn: 20.0
+    generator_values_min_hairpin: 10.0
+    generator_values_max_hairpin: 20.0
+    generator_values_max_hairpin_pairs: 2
     generator_values_max_length: 850.0
     generator_values_lax_generation: False
-    generator_values_track_width: 3.5
+    generator_values_track_width: 2.5
 
-    num_tracks_to_generate: 3
+    num_tracks_to_generate: 10
 
     # Append to report.json the information about tracks which were generated.
     write_report: True

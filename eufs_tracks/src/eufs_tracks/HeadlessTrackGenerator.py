@@ -100,7 +100,8 @@ class HeadlessTrackGenerator(Node):
 
         :param pid: The pid.
         """
-        seed = hash(f"{pid}_{int(time.time())}")
+        numpy_max_seed = 2**32 - 1
+        seed = abs(hash(f"{pid}_{int(time.time())}")) % (numpy_max_seed + 1)
         self._rng_seed = seed
         random.seed(seed)
         numpy.random.seed(seed)

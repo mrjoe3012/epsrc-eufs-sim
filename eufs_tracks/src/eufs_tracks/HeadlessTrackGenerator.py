@@ -13,7 +13,7 @@
 ###
 ##===----------------------------------------------------------------------===##
 from rclpy.node import Node
-import rclpy, random, time, os, uuid, json
+import rclpy, random, time, os, uuid, json, numpy
 from .TrackGenerator import TrackGenerator as Generator
 from .TrackGenerator import GeneratorContext
 from .ConversionTools import ConversionTools as Converter
@@ -103,6 +103,7 @@ class HeadlessTrackGenerator(Node):
         seed = hash(f"{pid}_{int(time.time())}")
         self._rng_seed = seed
         random.seed(seed)
+        numpy.random.seed(seed)
  
     def _log_status(self):
         l = self.get_logger()

@@ -191,7 +191,6 @@ class HeadlessTrackGenerator(Node):
             try:
                 # apply variation to parameters
                 varied_params = HeadlessTrackGenerator._apply_variations_to_parameter_set(params)
-                print(f"params {varied_params}")
                 HeadlessTrackGenerator.generate_random_track(track_name, varied_params)
                 track_names.append(track_name)
             except:

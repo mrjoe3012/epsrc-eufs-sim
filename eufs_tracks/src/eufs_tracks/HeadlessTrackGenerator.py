@@ -13,7 +13,7 @@
 ###
 ##===----------------------------------------------------------------------===##
 from rclpy.node import Node
-import rclpy, random, time, os, uuid, json, numpy
+import rclpy, random, time, os, uuid, json, fcntl
 from .TrackGenerator import TrackGenerator as Generator
 from .TrackGenerator import GeneratorContext
 from .ConversionTools import ConversionTools as Converter
@@ -143,6 +143,7 @@ class HeadlessTrackGenerator(Node):
         )
         new_report = not os.path.exists(path)
         with open(path, "r+") if not new_report else open(path, "w") as f:
+            fcntl.lockf(f, fcntl.LOCK_EX)
             report = []
             if not new_report:
                 report = json.load(f)
@@ -155,6 +156,7 @@ class HeadlessTrackGenerator(Node):
                 "parameters" : params
             })
             json.dump(report, f)
+            fcntl.lockf(f, fcntl.F_UNLCK)
 
     """
     Utility function for randomly varying an entire

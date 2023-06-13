@@ -48,16 +48,24 @@ class HeadlessTrackGenerator(Node):
         self.declare_parameter("component_data_hairpin_turn", 0.3)
 
         self.declare_parameter("generator_values_min_straight", 10.0)
+        self.declare_parameter("generator_values_min_straight_variation", 10.0)
         self.declare_parameter("generator_values_max_straight", 80.0)
+        self.declare_parameter("generator_values_max_straight_variation", 80.0)
         self.declare_parameter("generator_values_min_constant_turn", 10.0)
+        self.declare_parameter("generator_values_min_constant_turn_variation", 10.0)
         self.declare_parameter("generator_values_max_constant_turn", 25.0)
+        self.declare_parameter("generator_values_max_constant_turn_variation", 25.0)
         self.declare_parameter("generator_values_min_hairpin", 4.5)
+        self.declare_parameter("generator_values_min_hairpin_variation", 4.5)
         self.declare_parameter("generator_values_max_hairpin", 10.0)
+        self.declare_parameter("generator_values_max_hairpin_variation", 10.0)
         self.declare_parameter("generator_values_max_hairpin_pairs", 3)
+        self.declare_parameter("generator_values_max_hairpin_pairs_variation", 3)
         self.declare_parameter("generator_values_max_length", 1500.0)
         self.declare_parameter("generator_values_max_length_variation", 0.0)
         self.declare_parameter("generator_values_lax_generation", False)
         self.declare_parameter("generator_values_track_width", 3.5)
+        self.declare_parameter("generator_values_track_width_variation", 3.5)
 
         self.declare_parameter("num_tracks_to_generate", 1)
         self.declare_parameter("write_report", False)
@@ -77,16 +85,24 @@ class HeadlessTrackGenerator(Node):
         }
         generator_values = {
             "MIN_STRAIGHT": self.get_parameter("generator_values_min_straight").value,
+            "MIN_STRAIGHT_VARIATION": self.get_parameter("generator_values_min_straight_variation").value,
             "MAX_STRAIGHT": self.get_parameter("generator_values_max_straight").value,
+            "MAX_STRAIGHT_VARIATION": self.get_parameter("generator_values_max_straight_variation").value,
             "MIN_CONSTANT_TURN": self.get_parameter("generator_values_min_constant_turn").value,
+            "MIN_CONSTANT_TURN_VARIATION": self.get_parameter("generator_values_min_constant_turn_variation").value,
             "MAX_CONSTANT_TURN": self.get_parameter("generator_values_max_constant_turn").value,
+            "MAX_CONSTANT_TURN_VARIATION": self.get_parameter("generator_values_max_constant_turn_variation").value,
             "MIN_HAIRPIN": self.get_parameter("generator_values_min_hairpin").value,
+            "MIN_HAIRPIN_VARIATION": self.get_parameter("generator_values_min_hairpin_variation").value,
             "MAX_HAIRPIN": self.get_parameter("generator_values_max_hairpin").value,
+            "MAX_HAIRPIN_VARIATION": self.get_parameter("generator_values_max_hairpin_variation").value,
             "MAX_HAIRPIN_PAIRS": self.get_parameter("generator_values_max_hairpin_pairs").value,
+            "MAX_HAIRPIN_PAIRS_VARIATION": self.get_parameter("generator_values_max_hairpin_pairs_variation").value,
             "MAX_LENGTH": self.get_parameter("generator_values_max_length").value,
             "MAX_LENGTH_VARIATION" : self.get_parameter("generator_values_max_length_variation").value,
             "LAX_GENERATION": self.get_parameter("generator_values_lax_generation").value,
             "TRACK_WIDTH": self.get_parameter("generator_values_track_width").value,
+            "TRACK_WIDTH_VARIATION": self.get_parameter("generator_values_track_width_variation").value,
             "COMPONENTS": component_data
             }
         other_params = {
@@ -102,11 +118,9 @@ class HeadlessTrackGenerator(Node):
 
         :param pid: The pid.
         """
-        numpy_max_seed = 2**32 - 1
-        seed = abs(hash(f"{pid}_{int(time.time())}")) % (numpy_max_seed + 1)
+        seed = f"{pid}_{int(time.time())}"
         self._rng_seed = seed
         random.seed(seed)
-        numpy.random.seed(seed)
  
     def _log_status(self):
         l = self.get_logger()
@@ -142,6 +156,27 @@ class HeadlessTrackGenerator(Node):
             })
             json.dump(report, f)
 
+    """
+    Utility function for randomly varying an entire
+    parameter set.
+    
+    :param original_parameter_set: Parameter set.
+    :returns: A clone of the original parameter set with the random variations applied.
+    """
+    def _apply_variations_to_parameter_set(original_parameter_set: dict):
+        varied_params = dict(original_parameter_set)
+        varied_params["MIN_STRAIGHT"] = HeadlessTrackGenerator.randomly_vary_variable(varied_params["MIN_STRAIGHT"], varied_params["MIN_STRAIGHT_VARIATION"])
+        varied_params["MAX_STRAIGHT"] = HeadlessTrackGenerator.randomly_vary_variable(varied_params["MAX_STRAIGHT"], varied_params["MAX_STRAIGHT_VARIATION"])
+        varied_params["MIN_CONSTANT_TURN"] = HeadlessTrackGenerator.randomly_vary_variable(varied_params["MIN_CONSTANT_TURN"], varied_params["MIN_CONSTANT_TURN_VARIATION"])
+        varied_params["MAX_CONSTANT_TURN"] = HeadlessTrackGenerator.randomly_vary_variable(varied_params["MAX_CONSTANT_TURN"], varied_params["MAX_CONSTANT_TURN_VARIATION"])
+        varied_params["MIN_HAIRPIN"] = HeadlessTrackGenerator.randomly_vary_variable(varied_params["MIN_HAIRPIN"], varied_params["MIN_HAIRPIN_VARIATION"])
+        varied_params["MAX_HAIRPIN"] = HeadlessTrackGenerator.randomly_vary_variable(varied_params["MAX_HAIRPIN"], varied_params["MAX_HAIRPIN_VARIATION"])
+        varied_params["MAX_HAIRPIN_PAIRS"] = int(HeadlessTrackGenerator.randomly_vary_variable(varied_params["MAX_HAIRPIN_PAIRS"], varied_params["MAX_HAIRPIN_PAIRS_VARIATION"]))
+        varied_params["MAX_LENGTH"] = HeadlessTrackGenerator.randomly_vary_variable(varied_params["MAX_LENGTH"], varied_params["MAX_LENGTH_VARIATION"])
+        varied_params["MIN_STRAIGHT"] = HeadlessTrackGenerator.randomly_vary_variable(varied_params["MIN_STRAIGHT"], varied_params["MIN_STRAIGHT_VARIATION"])
+        varied_params["TRACK_WIDTH"] = HeadlessTrackGenerator.randomly_vary_variable(varied_params["TRACK_WIDTH"], varied_params["TRACK_WIDTH_VARIATION"])
+        return varied_params
+
     def _generate_multiple_tracks(self, num_tracks: int, params: dict):
         """
         Generates a specified number of tracks.
@@ -151,23 +186,16 @@ class HeadlessTrackGenerator(Node):
         :returns: A list containing the names of the generated tracks.
         """
         track_names = []
-        original_track_length = params["MAX_LENGTH"]
-        vary_track_length = params["MAX_LENGTH_VARIATION"] >= 1.0
         for i in range(num_tracks):
             track_name = f"{self._pid}_{uuid.uuid4().hex}"
             try:
-                # optionally apply some variation to maximum track length
-                if vary_track_length:
-                    params["MAX_LENGTH"] = HeadlessTrackGenerator.randomly_vary_variable(
-                        original_track_length,
-                        params["MAX_LENGTH_VARIATION"])
-                else:
-                    params["MAX_LENGTH"] = original_track_length
-                print(f"max_length {params['MAX_LENGTH']}")
-                HeadlessTrackGenerator.generate_random_track(track_name, params)
+                # apply variation to parameters
+                varied_params = HeadlessTrackGenerator._apply_variations_to_parameter_set(params)
+                print(f"params {varied_params}")
+                HeadlessTrackGenerator.generate_random_track(track_name, varied_params)
                 track_names.append(track_name)
             except RuntimeError:
-                self.get_logger().error(f"Track generation failed with the following parameters: {params}")
+                self.get_logger().error(f"Track generation failed with the following parameters: {varied_params}")
         return track_names
 
     """

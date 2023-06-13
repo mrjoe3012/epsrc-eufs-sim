@@ -55,6 +55,7 @@ class HeadlessTrackGenerator(Node):
         self.declare_parameter("generator_values_max_hairpin", 10.0)
         self.declare_parameter("generator_values_max_hairpin_pairs", 3)
         self.declare_parameter("generator_values_max_length", 1500.0)
+        self.declare_parameter("generator_values_max_length_variation", 0.0)
         self.declare_parameter("generator_values_lax_generation", False)
         self.declare_parameter("generator_values_track_width", 3.5)
 
@@ -83,6 +84,7 @@ class HeadlessTrackGenerator(Node):
             "MAX_HAIRPIN": self.get_parameter("generator_values_max_hairpin").value,
             "MAX_HAIRPIN_PAIRS": self.get_parameter("generator_values_max_hairpin_pairs").value,
             "MAX_LENGTH": self.get_parameter("generator_values_max_length").value,
+            "MAX_LENGTH_VARIATION" : self.get_parameter("generator_values_max_length_variation").value,
             "LAX_GENERATION": self.get_parameter("generator_values_lax_generation").value,
             "TRACK_WIDTH": self.get_parameter("generator_values_track_width").value,
             "COMPONENTS": component_data
@@ -149,14 +151,34 @@ class HeadlessTrackGenerator(Node):
         :returns: A list containing the names of the generated tracks.
         """
         track_names = []
+        original_track_length = params["MAX_LENGTH"]
+        vary_track_length = params["MAX_LENGTH_VARIATION"] >= 1.0
         for i in range(num_tracks):
             track_name = f"{self._pid}_{uuid.uuid4().hex}"
             try:
+                # optionally apply some variation to maximum track length
+                if vary_track_length:
+                    params["MAX_LENGTH"] = HeadlessTrackGenerator.randomly_vary_variable(
+                        original_track_length,
+                        params["MAX_LENGTH_VARIATION"])
+                else:
+                    params["MAX_LENGTH"] = original_track_length
+                print(f"max_length {params['MAX_LENGTH']}")
                 HeadlessTrackGenerator.generate_random_track(track_name, params)
                 track_names.append(track_name)
             except RuntimeError:
                 self.get_logger().error(f"Track generation failed with the following parameters: {params}")
         return track_names
+
+    """
+    Utility function to add randomness to a variable.
+    
+    :param mean: The mean value
+    :param range: The size of the range to uniformly sample from. 
+    :returns: Result is mean +/- half of range
+    """
+    def randomly_vary_variable(mean, range):
+        return (2.0*random.random() - 1.0)*range + mean
 
     def generate_random_track(filename: str, generator_values: dict):
         """

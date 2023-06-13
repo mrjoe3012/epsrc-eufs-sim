@@ -11,7 +11,8 @@ headless_track_generator:
     generator_values_min_hairpin: 10.0
     generator_values_max_hairpin: 20.0
     generator_values_max_hairpin_pairs: 2
-    generator_values_max_length: 850.0
+    generator_values_max_length: 1000.0
+    generator_values_max_length_variation: 350.0  # total range of random variation
     generator_values_lax_generation: False
     generator_values_track_width: 2.5
 

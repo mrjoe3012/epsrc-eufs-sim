@@ -194,7 +194,7 @@ class HeadlessTrackGenerator(Node):
                 print(f"params {varied_params}")
                 HeadlessTrackGenerator.generate_random_track(track_name, varied_params)
                 track_names.append(track_name)
-            except RuntimeError:
+            except:
                 self.get_logger().error(f"Track generation failed with the following parameters: {varied_params}")
         return track_names
 

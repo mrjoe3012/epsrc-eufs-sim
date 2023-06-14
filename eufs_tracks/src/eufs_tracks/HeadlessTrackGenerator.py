@@ -29,7 +29,7 @@ class HeadlessTrackGenerator(Node):
         self._pid = os.getpid()
         self._declare_ros_parameters()
         self._generator_values, self._node_params = self._read_ros_parameters()
-        self._initialise_rng(self._pid)
+        self._rng_seed = self._initialise_rng()
         self._run()
 
     def _run(self):
@@ -70,6 +70,8 @@ class HeadlessTrackGenerator(Node):
         self.declare_parameter("num_tracks_to_generate", 1)
         self.declare_parameter("write_report", False)
         self.declare_parameter("report_filename", "report.json")
+        self.declare_parameter("use_custom_seed", False)
+        self.declare_parameter("seed", 0)
 
     def _read_ros_parameters(self):
         """
@@ -109,18 +111,21 @@ class HeadlessTrackGenerator(Node):
             "num_tracks_to_generate" : self.get_parameter("num_tracks_to_generate").value,
             "write_report" : self.get_parameter("write_report").value,
             "report_filename" : self.get_parameter("report_filename").value,
+            "use_custom_seed" : self.get_parameter("use_custom_seed").value,
+            "seed" : self.get_parameter("seed").value,
         }
         return generator_values, other_params
 
-    def _initialise_rng(self, pid: int):
+    def _initialise_rng(self):
         """
-        Seeds the RNG with {pid}_{system_time} (hashed)
-
-        :param pid: The pid.
+        Seeds the RNG with system time or a custom seed.
         """
-        seed = f"{pid}_{int(time.time())}"
-        self._rng_seed = seed
+        use_custom = self._node_params["use_custom_seed"]
+        custom = self._node_params["seed"]
+        seed = custom if use_custom else time.time()
         random.seed(seed)
+        if use_custom: self.get_logger().info(f"Using a custom seed: {custom}")
+        return seed
  
     def _log_status(self):
         l = self.get_logger()

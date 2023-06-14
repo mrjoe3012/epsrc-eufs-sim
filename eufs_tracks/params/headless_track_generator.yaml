@@ -29,3 +29,6 @@ headless_track_generator:
     # Append to report.json the information about tracks which were generated.
     write_report: True
     report_filename: report.json
+
+    use_custom_seed: False
+    custom_seed: 0

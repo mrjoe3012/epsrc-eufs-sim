@@ -3,7 +3,7 @@
     <xacro:macro name="sensor_imu" params="prefix parent *origin noise:=0.08">
         <joint name="${prefix}_base_joint" type="fixed">
             <axis xyz="1 0 0"/>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <origin xyz="0 0 0" rpy="0 0 -1.57"/>
             <xacro:insert_block name="origin"/>
             <parent link="${parent}"/>
             <child link="${prefix}_base_link"/>
@@ -85,7 +85,7 @@
                     <ros>
                         <remapping>~/out:=${prefix}</remapping>
                     </ros>
-                    <frame_name>${prefix}_base_link_ned</frame_name>
+                    <frame_name>${prefix}_base_link</frame_name>
                     <initial_orientation_as_reference>false</initial_orientation_as_reference>
                 </plugin>
                 <pose>0 0 0 0 0 0</pose>

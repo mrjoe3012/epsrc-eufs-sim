@@ -15,7 +15,7 @@
 from rclpy.node import Node
 import rclpy, random, time, os, uuid, json, fcntl, numpy
 from .TrackGenerator import TrackGenerator as Generator
-from .TrackGenerator import GeneratorContext
+from .TrackGenerator import GeneratorContext, GenerationFailedException
 from .ConversionTools import ConversionTools as Converter
 from ament_index_python import get_package_share_directory
 
@@ -201,7 +201,7 @@ class HeadlessTrackGenerator(Node):
                 varied_params = HeadlessTrackGenerator._apply_variations_to_parameter_set(params)
                 HeadlessTrackGenerator.generate_random_track(track_name, varied_params)
                 track_names.append(track_name)
-            except:
+            except GenerationFailedException:
                 self.get_logger().error(f"Track generation failed with the following parameters: {varied_params}")
         return track_names
 
@@ -228,7 +228,7 @@ class HeadlessTrackGenerator(Node):
         images_folder = os.path.join(tracks_folder, "image")
 
         def failure_function():
-            raise RuntimeError()
+            raise GenerationFailedException()
 
         with GeneratorContext(generator_values, failure_function):
             xys, twidth, theight = Generator.generate()

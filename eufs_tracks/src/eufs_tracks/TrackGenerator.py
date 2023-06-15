@@ -40,12 +40,12 @@ class GeneratorContext(Node):
     def __exit__(self, exc_type, exc_value, traceback):
         TrackGenerator.has_context = False
         if exc_type is GenerationFailedException:
-            self.get_logger().error(
-                "\nError!  The generator could not generate in time.\n"
-                + "Maybe try different parameters?\n"
-                + "Turning on Lax Generation and increasing MAX_STRAIGHT"
-                + " and MIN_STRAIGHT usually helps."
-            )
+            # self.get_logger().error(
+            #     "\nError!  The generator could not generate in time.\n"
+            #     + "Maybe try different parameters?\n"
+            #     + "Turning on Lax Generation and increasing MAX_STRAIGHT"
+            #     + " and MIN_STRAIGHT usually helps."
+            # )
             self.failed = True
             self.failure_function()
 

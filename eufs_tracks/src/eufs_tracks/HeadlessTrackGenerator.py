@@ -124,7 +124,7 @@ class HeadlessTrackGenerator(Node):
         custom = self._node_params["seed"]
         seed = custom if use_custom else time.time()
         random.seed(seed)
-        numpy.random.seed(seed)
+        numpy.random.seed(int(seed))
         if use_custom: self.get_logger().info(f"Using a custom seed: {custom}")
         return seed
  

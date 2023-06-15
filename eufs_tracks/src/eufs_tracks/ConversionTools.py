@@ -8,6 +8,7 @@ from rclpy.node import Node
 import sys
 import pandas as pd
 from collections import OrderedDict
+from scipy.optimize import curve_fit
 
 sys.path.insert(1, os.path.join(get_package_share_directory('eufs_tracks'),
                                 'csv'))  # nopep8
@@ -356,21 +357,34 @@ class ConversionTools(Node):
             in ConversionTools.get_points_from_component_list(components)
         ])
 
-        # We want to calculate direction of car position
-        sx = xys[0][0]
-        sy = xys[0][1]
-        ex = xys[1][0]
-        ey = xys[1][1]
+        # finding start heading and position
 
-        # So we calculate the angle that the car is facing (the yaw)
-        angle = math.atan2(ey - sy, ex - sx)
+        # minimum distance from starting cones point to the car
+        start_to_car_distance = 6.5
+
+        # find first path point behind starting position
+        # satisfying minimum distance requirement
+        for (x, y) in xys[::-1]:
+            if ((x-xys[0][0])**2 + (y-xys[0][1])**2) >= start_to_car_distance**2:
+                car_x, car_y = x, y
+                break
+
+        # define the number of path points to use
+        # in the car start angle calculation.
+        # using only the first two points can lead
+        # to an inaccurate placement
+        car_start_lookahead = 20
+        car_start_path = ([x[0] for x in xys[:car_start_lookahead]], [x[1] for x in xys[:car_start_lookahead]])
+        linef = lambda x, a, b: x*a + b
+        fit_params, _ = curve_fit(linef, car_start_path[0], car_start_path[1])
+        p1x, p1y = car_start_path[0][0], linef(car_start_path[0][0], fit_params[0], fit_params[1])  # use line of best fit to get the heading vector (begin and end points)
+        p2x, p2y = car_start_path[0][-1], linef(car_start_path[0][-1], fit_params[0], fit_params[1])
+        angle = math.atan2(p2y - p1y, p2x - p1x)
         if angle < 0:
             # Angle is on range [-pi,pi] but we want [0,2pi]
             # So if it is less than 0, pop it onto the correct range.
             angle += 2 * math.pi
 
-        # Now we get the car position
-        car_x, car_y = (sx, sy)
 
         # And now the cone locations
         cone_locs = []

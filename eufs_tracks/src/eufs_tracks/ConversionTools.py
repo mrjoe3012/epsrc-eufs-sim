@@ -359,9 +359,9 @@ class ConversionTools(Node):
 
         # finding start heading and position
 
-        start_idx = 0
-        track_start_index, angle, line_cones = get_start_point_info(xys, start_idx)
-        car_x, car_y = xys[start_idx]
+        track_start_idx = 0  # TODO: set track_start to first point in random component
+        car_start_idx, angle = get_start_point_info(xys, track_start_idx)
+        car_x, car_y = xys[car_start_idx]
 
         # And now the cone locations
         cone_locs = []

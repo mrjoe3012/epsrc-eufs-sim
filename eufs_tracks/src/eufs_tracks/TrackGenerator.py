@@ -2022,8 +2022,8 @@ def get_start_point_info(xys, car_start, lookahead_count=20, min_car_distance=6)
     
     # capture path shape near start
     path_at_start = (
-        [x[0] for x in xys[car_start:car_start+lookahead_count]],
-        [x[1] for x in xys[car_start:car_start+lookahead_count]]
+        [x[0] for x in xys[car_start:car_start+lookahead_count][::-1]],
+        [x[1] for x in xys[car_start:car_start+lookahead_count][::-1]]
     )
 
     # eqn of a line
@@ -2042,8 +2042,4 @@ def get_start_point_info(xys, car_start, lookahead_count=20, min_car_distance=6)
     angle = math.atan2(ey - sy, ex - sx)
     # report angle in range [0, 2pi]
     if angle < 0: angle += 2 * math.pi
-    line_cones = []
-    for x in path_at_start[0]:
-        y = fit_linef(x)
-        line_cones.append((x,y,CONE_ORANGE))
-    return track_start_idx, angle, line_cones
+    return track_start_idx, angle

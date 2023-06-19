@@ -21,6 +21,7 @@ from .TrackGenerator import (  # noqa: E402
 from .TrackGenerator import get_cone_function  # noqa: E402
 from .TrackGenerator import get_start_point_info
 
+class BadStartingPointError(Exception): pass
 
 # Here are all the track formats we care about:
 # .launch (well, we actually want the model data, not the .launch, but we'll
@@ -196,7 +197,8 @@ class ConversionTools(Node):
 
     @staticmethod
     def convert(cfrom, cto, which_file, params={}, conversion_suffix="",
-                override_name=None, track_start_component_index=0):
+                override_name=None, track_start_component_index=0,
+                max_starting_point_error=0.25):
         """
         Will convert which_file of filetype cfrom to filetype cto with
         filename which_file+conversion_suffix
@@ -242,7 +244,8 @@ class ConversionTools(Node):
                 params,
                 conversion_suffix,
                 override_name,
-                track_start_component_index=track_start_component_index
+                track_start_component_index=track_start_component_index,
+                max_starting_point_error=max_starting_point_error
             )
         elif cfrom == "png" and cto == "launch":
             return ConversionTools.png_to_launch(
@@ -334,7 +337,8 @@ class ConversionTools(Node):
 
     @staticmethod
     def comps_to_csv(which_file, params, conversion_suffix="",
-                     override_name=None, track_start_component_index=0):
+                     override_name=None, track_start_component_index=0,
+                     max_starting_point_error=0.25):
         """
         Converts raw track generator output to csv.
 
@@ -363,8 +367,10 @@ class ConversionTools(Node):
             track_start_idx += len(points)
 
         # finding start heading and position
-        car_start_idx, angle = get_start_point_info(xys, track_start_idx)
+        car_start_idx, angle, rmse = get_start_point_info(xys, track_start_idx)
         car_x, car_y = xys[car_start_idx]
+
+        if rmse >= max_starting_point_error: raise BadStartingPointError()
 
         # get cone locations, starting from the component
         # at which we were told to start from

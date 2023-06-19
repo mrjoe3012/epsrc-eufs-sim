@@ -17,6 +17,7 @@ import rclpy, random, time, os, uuid, json, fcntl, numpy
 from .TrackGenerator import TrackGenerator as Generator
 from .TrackGenerator import GeneratorContext, GenerationFailedException
 from .ConversionTools import ConversionTools as Converter
+from .ConversionTools import BadStartingPointError
 from ament_index_python import get_package_share_directory
 
 class HeadlessTrackGenerator(Node):
@@ -68,6 +69,8 @@ class HeadlessTrackGenerator(Node):
         self.declare_parameter("generator_values_track_width_variation", 3.5)
 
         self.declare_parameter("num_tracks_to_generate", 1)
+        self.declare_parameter("explore_starting_points", False)
+        self.declare_parameter("max_starting_point_error", 0.25)
         self.declare_parameter("write_report", False)
         self.declare_parameter("report_filename", "report.json")
         self.declare_parameter("use_custom_seed", False)
@@ -113,6 +116,8 @@ class HeadlessTrackGenerator(Node):
             "report_filename" : self.get_parameter("report_filename").value,
             "use_custom_seed" : self.get_parameter("use_custom_seed").value,
             "seed" : self.get_parameter("seed").value,
+            "explore_starting_points" : self.get_parameter("explore_starting_points").value,
+            "max_starting_point_error" : self.get_parameter("max_starting_point_error").value,
         }
         return generator_values, other_params
 
@@ -194,13 +199,16 @@ class HeadlessTrackGenerator(Node):
         :returns: A list containing the names of the generated tracks.
         """
         track_names = []
-        for i in range(num_tracks):
+        while len(track_names) < num_tracks:
             track_name = f"{self._pid}_{uuid.uuid4().hex}"
             try:
                 # apply variation to parameters
                 varied_params = HeadlessTrackGenerator._apply_variations_to_parameter_set(params)
-                HeadlessTrackGenerator.generate_random_track(track_name, varied_params)
-                track_names.append(track_name)
+                generated_tracks = HeadlessTrackGenerator.generate_random_track(
+                    track_name, varied_params,
+                    explore_starting_points=self._node_params["explore_starting_points"],
+                    max_starting_point_error=self._node_params["max_starting_point_error"])
+                track_names.extend(generated_tracks)
             except GenerationFailedException:
                 self.get_logger().error(f"Track generation failed with the following parameters: {varied_params}")
         return track_names
@@ -215,15 +223,18 @@ class HeadlessTrackGenerator(Node):
     def randomly_vary_variable(mean, range):
         return (2.0*random.random() - 1.0)*range + mean
 
-    def generate_random_track(filename: str, generator_values: dict):
+    def generate_random_track(filename: str, generator_values: dict, explore_starting_points=False, max_starting_point_error=0.25):
         """
         This function interfaces with the EUFS random track generator
         to generate a random track and the associated files.
         
+        :returns: A list of track names. The list will contain only one element if explore_starting_points is False.
         :param filename: The name of the output files to be generated, minus the extension.
         :param generator_values: A dictionary containing the parameters to use for generation.
+        :param explore_starting_points: Whether or not to explore all possible starting points of the random track.
         :raises RuntimeError: Upon track generation failure.
         """
+        track_names = []
         tracks_folder = get_package_share_directory("eufs_tracks")
         images_folder = os.path.join(tracks_folder, "image")
 
@@ -232,25 +243,59 @@ class HeadlessTrackGenerator(Node):
 
         with GeneratorContext(generator_values, failure_function):
             xys, twidth, theight = Generator.generate()
-            im = Converter.convert(
-                "comps",
-                "csv",
-                filename,
-                params={
-                    "track data": (xys, twidth, theight)
-                }
-            )
-            csv_path = os.path.join(
-                tracks_folder,
-                f"csv/{filename}.csv"
-            )
-            Converter.convert(
-                "csv",
-                "ALL",
-                csv_path,
-                params={"noise" : 0.001}
-            )
-            im.save(os.path.join(images_folder, f"{filename}.png"))
+            if explore_starting_points:
+                for i in range(len(xys)):
+                    track_name = f"{filename}_{i}"
+                    try:
+                        im = Converter.convert(
+                            "comps",
+                            "csv",
+                            track_name,
+                            params={
+                                "track data": (xys, twidth, theight)
+                            },
+                            track_start_component_index=i,
+                            max_starting_point_error=max_starting_point_error,
+                        )
+                        csv_path = os.path.join(
+                            tracks_folder,
+                            f"csv/{track_name}.csv"
+                        )
+                        Converter.convert(
+                            "csv",
+                            "ALL",
+                            csv_path,
+                            params={"noise" : 0.001}
+                        )
+                        im.save(os.path.join(images_folder, f"{track_name}.png"))   
+                        track_names.append(track_name)
+                    except BadStartingPointError:
+                        print(f"{track_name} failed.")
+                    except Exception as e:
+                        print(f"{track_name} failed for an unexpected reason. Exception: {e}")
+            else:
+                im = Converter.convert(
+                    "comps",
+                    "csv",
+                    filename,
+                    params={
+                        "track data": (xys, twidth, theight)
+                    }
+                )
+                csv_path = os.path.join(
+                    tracks_folder,
+                    f"csv/{filename}.csv"
+                )
+                Converter.convert(
+                    "csv",
+                    "ALL",
+                    csv_path,
+                    params={"noise" : 0.001}
+                )
+                im.save(os.path.join(images_folder, f"{filename}.png"))
+                track_names.append(filename)
+
+        return track_names
 
 def main(args=None):
     rclpy.init(args=args)

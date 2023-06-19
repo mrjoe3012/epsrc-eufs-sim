@@ -24,11 +24,14 @@ headless_track_generator:
     generator_values_track_width: 3.5
     generator_values_track_width_variation: 0.5
 
-    num_tracks_to_generate: 10
+    num_tracks_to_generate: 30
+
+    explore_starting_points: True  # whether or not to iterate through possible starting points
+    max_starting_point_error: 0.25  # controls maximum curvature at track starting point
 
     # Append to report.json the information about tracks which were generated.
     write_report: True
     report_filename: report.json
 
-    use_custom_seed: False
+    use_custom_seed: True
     custom_seed: 0

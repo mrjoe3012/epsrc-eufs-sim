@@ -2043,4 +2043,4 @@ def get_start_point_info(xys, track_start, lookback_count=100, min_car_distance=
     angle = math.atan2(ey - sy, ex - sx)
     # report angle in range [0, 2pi]
     if angle < 0: angle += 2 * math.pi
-    return car_start_idx, angle
+    return car_start_idx, angle, rmse

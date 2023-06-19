@@ -196,7 +196,7 @@ class ConversionTools(Node):
 
     @staticmethod
     def convert(cfrom, cto, which_file, params={}, conversion_suffix="",
-                override_name=None):
+                override_name=None, track_start_component_index=0):
         """
         Will convert which_file of filetype cfrom to filetype cto with
         filename which_file+conversion_suffix
@@ -241,7 +241,8 @@ class ConversionTools(Node):
                 which_file,
                 params,
                 conversion_suffix,
-                override_name
+                override_name,
+                track_start_component_index=track_start_component_index
             )
         elif cfrom == "png" and cto == "launch":
             return ConversionTools.png_to_launch(
@@ -333,7 +334,7 @@ class ConversionTools(Node):
 
     @staticmethod
     def comps_to_csv(which_file, params, conversion_suffix="",
-                     override_name=None):
+                     override_name=None, track_start_component_index=0):
         """
         Converts raw track generator output to csv.
 
@@ -352,27 +353,32 @@ class ConversionTools(Node):
         # Unpack
         (components, twidth, theight) = params["track data"]
 
-        xys = compactify_points([
-            (int(x[0]), int(x[1])) for x
-            in ConversionTools.get_points_from_component_list(components)
-        ])
+        xys = ConversionTools.get_points_from_component_list(components)
+
+        # determine track start path index from the component index
+        track_start_idx = 0
+        for i,component in enumerate(components):
+            if i == track_start_component_index: break
+            points = component[1]
+            track_start_idx += len(points)
 
         # finding start heading and position
-
-        track_start_idx = 0  # TODO: set track_start to first point in random component
         car_start_idx, angle = get_start_point_info(xys, track_start_idx)
         car_x, car_y = xys[car_start_idx]
 
-        # And now the cone locations
+        # get cone locations, starting from the component
+        # at which we were told to start from
         cone_locs = []
-        for idx, tup in enumerate(components):
-            (name, points) = tup
-            if idx == 0:
+        idx = track_start_component_index
+        for _ in range(len(components)):
+            name, points = components[idx]
+            if idx == track_start_component_index:
                 cone_locs.extend(cone_start(points))
             else:
                 cone_locs.extend(
                     get_cone_function(name)(points, prev_points=cone_locs)
                 )
+            idx = (idx + 1) % len(components)
 
         # Get the right csv tags
         def name_from_color(c):

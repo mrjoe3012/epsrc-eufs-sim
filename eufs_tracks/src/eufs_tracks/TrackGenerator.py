@@ -1996,7 +1996,7 @@ def fit_rmse(linef, xs, ys):
     rmse = math.sqrt(rmse)
     return rmse
 
-def get_start_point_info(xys, track_start, lookback_count=20, min_car_distance=6):
+def get_start_point_info(xys, track_start, lookback_count=100, min_car_distance=6):
     """
     Takes in a track path and track start and determines
     the angle of the path near that point as well as the
@@ -2018,13 +2018,13 @@ def get_start_point_info(xys, track_start, lookback_count=20, min_car_distance=6
     for i in range(len(xys)):
         x, y = xys[car_start_idx]
         sqr_dist = (x-track_start_x)**2 + (y-track_start_y)**2
-        car_start_idx = (car_start_idx - 1) % len(xys)
+        car_start_idx = (car_start_idx + 1) % len(xys)
         if sqr_dist >= min_car_distance**2: break
     
     # capture path shape near start
     path_at_start = ([], [])
     for i in range(lookback_count):
-        idx = (track_start - i) % len(xys)
+        idx = (track_start + i) % len(xys)
         path_at_start[0].insert(0, xys[idx][0])
         path_at_start[1].insert(0, xys[idx][1])
 
@@ -2036,7 +2036,6 @@ def get_start_point_info(xys, track_start, lookback_count=20, min_car_distance=6
     # calculate RMSE of the fit (to determine if it's a good starting point)
     fit_linef = partial(linef, m=m, c=c)
     rmse = fit_rmse(fit_linef, path_at_start[0], path_at_start[1])
-    print(f"rmse={rmse}")
     # determine start and end points of the line
     sx, sy = path_at_start[0][0], fit_linef(path_at_start[0][0])
     ex, ey = path_at_start[0][-1], fit_linef(path_at_start[0][-1])

@@ -1986,7 +1986,7 @@ def fit_rmse(linef, xs, ys):
     :param ys: y data points.
     :returns: Root mean square error.
     """
-    assert(len(xs) == len(ys))
+    assert len(xs) == len(ys)
     N = len(xs)
     rmse = 0.0
     for i in range(N):
@@ -1996,35 +1996,37 @@ def fit_rmse(linef, xs, ys):
     rmse = math.sqrt(rmse)
     return rmse
 
-def get_start_point_info(xys, car_start, lookahead_count=20, min_car_distance=6):
+def get_start_point_info(xys, track_start, lookback_count=20, min_car_distance=6):
     """
-    Takes in a track path and car start and determines
+    Takes in a track path and track start and determines
     the angle of the path near that point as well as the
-    path point at which the starting large orange cones should be
-    place in order for the car to start a legal distance.
+    path point at which the car should be
+    placed in order for the car to start a legal distance.
     
     :param xys: The path points of the track.
     :param car_start: The index of the path point representing the car start.
-    :param lookahead_count: Number of path points ahead of given start point to use when calculating track angle.
+    :param lookback_count: Number of path points back of given start point to use when calculating track angle.
     :param min_car_distance: The minimum distance at which large orange cones will be placed in front of the car.
     :returns: description
     :raises AssertionError: When the provided car start index is too close to the end of the path array.
     """
-    assert(car_start + lookahead_count <= len(xys), "Car start is too close to end of track.")
     
-    car_start_x, car_start_y = xys[car_start]
-    # find closest point to car start that satisfies min_car_distance,
+    track_start_x, track_start_y = xys[track_start]
+    # find closest point to track start that satisfies min_car_distance,
     # if none exists use the farthest away point
-    for i,(x,y) in enumerate(xys[car_start:]):
-        sqr_dist = (x-car_start_x)**2 + (y-car_start_y)**2
-        track_start_idx = i
+    car_start_idx = track_start
+    for i in range(len(xys)):
+        x, y = xys[car_start_idx]
+        sqr_dist = (x-track_start_x)**2 + (y-track_start_y)**2
+        car_start_idx = (car_start_idx - 1) % len(xys)
         if sqr_dist >= min_car_distance**2: break
     
     # capture path shape near start
-    path_at_start = (
-        [x[0] for x in xys[car_start:car_start+lookahead_count][::-1]],
-        [x[1] for x in xys[car_start:car_start+lookahead_count][::-1]]
-    )
+    path_at_start = ([], [])
+    for i in range(lookback_count):
+        idx = (track_start - i) % len(xys)
+        path_at_start[0].insert(0, xys[idx][0])
+        path_at_start[1].insert(0, xys[idx][1])
 
     # eqn of a line
     linef = lambda x, m, c: m*x + c
@@ -2042,4 +2044,4 @@ def get_start_point_info(xys, car_start, lookahead_count=20, min_car_distance=6)
     angle = math.atan2(ey - sy, ex - sx)
     # report angle in range [0, 2pi]
     if angle < 0: angle += 2 * math.pi
-    return track_start_idx, angle
+    return car_start_idx, angle

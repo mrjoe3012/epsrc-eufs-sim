@@ -223,7 +223,45 @@ class HeadlessTrackGenerator(Node):
     def randomly_vary_variable(mean, range):
         return (2.0*random.random() - 1.0)*range + mean
 
-    def generate_random_track(filename: str, generator_values: dict, explore_starting_points=False, max_starting_point_error=0.25):
+    def convert_generated_track(filename: str, track_data,
+                                track_start_component_index: int, max_starting_point_error: float):
+        """
+        Utility function to attempt to create output files from
+        a generated track.
+        
+        :param filename: The filename, without any extension.
+        :param track_data: A dictionary containing the track's path, width and height as consumed
+                           by EUFS' conversion tools.
+        :raises BadStartingPointException:
+        :raises Exception: If the track generator fails for an unecpected reason.
+        """
+        tracks_folder = get_package_share_directory("eufs_tracks")
+        images_folder = os.path.join(
+            tracks_folder,
+            "image"
+        )
+        im = Converter.convert(
+            "comps",
+            "csv",
+            filename,
+            params=track_data,
+            track_start_component_index=track_start_component_index,
+            max_starting_point_error=max_starting_point_error,
+        )
+        csv_path = os.path.join(
+            tracks_folder,
+            f"csv/{filename}.csv"
+        )
+        Converter.convert(
+            "csv",
+            "ALL",
+            csv_path,
+            params={"noise" : 0.001}
+        )
+        im.save(os.path.join(images_folder, f"{filename}.png"))
+
+    def generate_random_track(filename: str, generator_values: dict,
+                              explore_starting_points=False, max_starting_point_error=0.25):
         """
         This function interfaces with the EUFS random track generator
         to generate a random track and the associated files.
@@ -232,68 +270,45 @@ class HeadlessTrackGenerator(Node):
         :param filename: The name of the output files to be generated, minus the extension.
         :param generator_values: A dictionary containing the parameters to use for generation.
         :param explore_starting_points: Whether or not to explore all possible starting points of the random track.
+               This includes inverting the path so that the track is driven in the opposite direction.
         :raises RuntimeError: Upon track generation failure.
         """
         track_names = []
-        tracks_folder = get_package_share_directory("eufs_tracks")
-        images_folder = os.path.join(tracks_folder, "image")
 
         def failure_function():
             raise GenerationFailedException()
 
         with GeneratorContext(generator_values, failure_function):
             xys, twidth, theight = Generator.generate()
+            params = {"track data" : (xys, twidth, theight)}
             if explore_starting_points:
                 for i in range(len(xys)):
                     track_name = f"{filename}_{i}"
                     try:
-                        im = Converter.convert(
-                            "comps",
-                            "csv",
+                        HeadlessTrackGenerator.convert_generated_track(
                             track_name,
-                            params={
-                                "track data": (xys, twidth, theight)
-                            },
-                            track_start_component_index=i,
-                            max_starting_point_error=max_starting_point_error,
-                        )
-                        csv_path = os.path.join(
-                            tracks_folder,
-                            f"csv/{track_name}.csv"
-                        )
-                        Converter.convert(
-                            "csv",
-                            "ALL",
-                            csv_path,
-                            params={"noise" : 0.001}
-                        )
-                        im.save(os.path.join(images_folder, f"{track_name}.png"))   
+                            params,
+                            i,
+                            max_starting_point_error
+                        ) 
                         track_names.append(track_name)
                     except BadStartingPointError:
                         print(f"{track_name} failed.")
                     except Exception as e:
                         print(f"{track_name} failed for an unexpected reason. Exception: {e}")
             else:
-                im = Converter.convert(
-                    "comps",
-                    "csv",
-                    filename,
-                    params={
-                        "track data": (xys, twidth, theight)
-                    }
-                )
-                csv_path = os.path.join(
-                    tracks_folder,
-                    f"csv/{filename}.csv"
-                )
-                Converter.convert(
-                    "csv",
-                    "ALL",
-                    csv_path,
-                    params={"noise" : 0.001}
-                )
-                im.save(os.path.join(images_folder, f"{filename}.png"))
-                track_names.append(filename)
+                try:
+                    HeadlessTrackGenerator.convert_generated_track(
+                        filename,
+                        params,
+                        0,
+                        max_starting_point_error
+                    )
+                    track_names.append(filename)
+                except BadStartingPointError:
+                    print(f"{filename} failed.")
+                except Exception as e:
+                    print(f"{filename} failed for an unexpected reason. Exception: {e}")
 
         return track_names
 

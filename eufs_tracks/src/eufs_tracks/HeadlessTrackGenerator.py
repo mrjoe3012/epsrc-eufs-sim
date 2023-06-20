@@ -281,9 +281,11 @@ class HeadlessTrackGenerator(Node):
         with GeneratorContext(generator_values, failure_function):
             xys, twidth, theight = Generator.generate()
             params = {"track data" : (xys, twidth, theight)}
+            params_rev = {"track data" : (Converter.reverse_track(xys, twidth, theight))}
             if explore_starting_points:
                 for i in range(len(xys)):
                     track_name = f"{filename}_{i}"
+                    track_name_rev = f"{track_name}r"  # same track/starting pt but car drives the other way
                     try:
                         HeadlessTrackGenerator.convert_generated_track(
                             track_name,
@@ -296,6 +298,18 @@ class HeadlessTrackGenerator(Node):
                         print(f"{track_name} failed.")
                     except Exception as e:
                         print(f"{track_name} failed for an unexpected reason. Exception: {e}")
+                    try:
+                        HeadlessTrackGenerator.convert_generated_track(
+                            track_name_rev,
+                            params_rev,
+                            len(xys) - i,
+                            max_starting_point_error
+                        )
+                        track_names.append(track_name_rev)
+                    except BadStartingPointError:
+                        print(f"{track_name_rev} failed.")
+                    except Exception as e:
+                        print(f"{track_name_rev} failed for an unexpected reason. Exception: {e}")
             else:
                 try:
                     HeadlessTrackGenerator.convert_generated_track(

@@ -8,6 +8,7 @@ from rclpy.node import Node
 import sys
 import pandas as pd
 from collections import OrderedDict
+import copy
 
 sys.path.insert(1, os.path.join(get_package_share_directory('eufs_tracks'),
                                 'csv'))  # nopep8
@@ -1955,3 +1956,24 @@ class ConversionTools(Node):
         writer.write(data)
         reader.close()
         writer.close()
+
+    #########################################################
+    #                         Other                        #
+    #########################################################
+
+    @staticmethod
+    def reverse_track(xys, twidth, theight):
+        """
+        Takes track data and reverses the track.
+        
+        :param xys: components
+        :param twidth: track width
+        :param theight: track height
+        :returns: (xys, twidth, theight)
+        """
+
+        new_xys = [
+            (comp[0], copy.deepcopy(comp[1])[::-1]) for comp in xys
+        ]
+        new_xys.reverse()
+        return new_xys, twidth, theight

@@ -200,7 +200,7 @@ class HeadlessTrackGenerator(Node):
         """
         track_names = []
         while len(track_names) < num_tracks:
-            track_name = f"{self._pid}_{uuid.uuid4().hex}"
+            track_name = f"{uuid.uuid4().hex}"
             try:
                 # apply variation to parameters
                 varied_params = HeadlessTrackGenerator._apply_variations_to_parameter_set(params)

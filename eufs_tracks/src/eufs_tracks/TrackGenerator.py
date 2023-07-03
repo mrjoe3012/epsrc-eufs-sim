@@ -2018,16 +2018,15 @@ def get_start_point_info(xys, track_start, lookback_count=100, min_car_distance=
     for i in range(len(xys)):
         x, y = xys[car_start_idx]
         sqr_dist = (x-track_start_x)**2 + (y-track_start_y)**2
-        car_start_idx = (car_start_idx + 1) % len(xys)
+        car_start_idx = (car_start_idx - 1) % len(xys)
         if sqr_dist >= min_car_distance**2: break
     
     # capture path shape near start
     path_at_start = ([], [])
     for i in range(lookback_count):
-        idx = (track_start + i) % len(xys)
+        idx = (track_start - i) % len(xys)
         path_at_start[0].insert(0, xys[idx][0])
         path_at_start[1].insert(0, xys[idx][1])
-
     # eqn of a line
     linef = lambda x, m, c: m*x + c
     # fit line to path shape near start

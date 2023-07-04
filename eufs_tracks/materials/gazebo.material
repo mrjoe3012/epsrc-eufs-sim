@@ -1083,3 +1083,48 @@ material Gazebo/CarTexture
     }
   }
 }
+
+material Gazebo/BlueCone
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture blue_cone.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/YellowCone
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture yellow_cone.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/OrangeCone
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture orange_cone.png
+        filtering trilinear
+      }
+    }
+  }
+}

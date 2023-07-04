@@ -1061,7 +1061,7 @@ material Gazebo/Asphalt
       {
         texture asphalt.jpg
         filtering trilinear
-        scale .01 .01
+        scale .001 .001
       }
     }
   }

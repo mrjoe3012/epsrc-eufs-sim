@@ -1090,6 +1090,7 @@ material Gazebo/BlueCone
   {
     pass
     {
+      specular 1.0 1.0 1.0 
       texture_unit
       {
         texture blue_cone.png
@@ -1105,6 +1106,7 @@ material Gazebo/YellowCone
   {
     pass
     {
+      specular 1.0 1.0 1.0
       texture_unit
       {
         texture yellow_cone.png
@@ -1120,6 +1122,7 @@ material Gazebo/OrangeCone
   {
     pass
     {
+      specular 1.0 1.0 1.0
       texture_unit
       {
         texture orange_cone.png

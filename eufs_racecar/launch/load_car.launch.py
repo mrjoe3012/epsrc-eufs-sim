@@ -57,6 +57,7 @@ def spawn_car(context, *args, **kwargs):
                              })
     out = xacro.open_output(urdf_path)
     out.write(doc.toprettyxml(indent='  '))
+    out.close()
 
     with open(urdf_path, 'r') as urdf_file:
         robot_description = urdf_file.read()

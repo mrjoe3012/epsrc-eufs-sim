@@ -17,6 +17,7 @@
   <depend>ament_index_python</depend>
   <depend>xacro</depend>
   <depend>rqt_gui</depend>
+  <depend>velodyne_simulator</depend>
 
   <depend>launch</depend>
   <depend>launch_ros</depend>

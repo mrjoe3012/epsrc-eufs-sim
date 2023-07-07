@@ -28,12 +28,22 @@
           </script>
         </material>
       </visual>
-      <collision name='collision'>
+      <collision name='collision1'>
         <max_contacts>3</max_contacts>
         <geometry>
           <mesh>
-            <uri>file://cone_blue.dae</uri>
+            <uri>file://cone_small_no_stripe.dae</uri>
           </mesh>
+          <laser_retro>0.1</laser_retro>
+        </geometry>
+      </collision>
+      <collision name='collision2'>
+        <max_contacts>3</max_contacts>
+        <geometry>
+          <mesh>
+            <uri>file://cone_small_stripe_only.dae</uri>
+          </mesh>
+          <laser_retro>0.2</laser_retro>
         </geometry>
       </collision>
     </link>

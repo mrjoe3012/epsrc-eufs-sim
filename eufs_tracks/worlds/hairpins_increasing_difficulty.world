@@ -11,7 +11,8 @@
     <!-- WORLD SETTINGS -->
     <scene>
       <ambient>1.0 1.0 1.0 1.0</ambient>
-      <shadows>false</shadows>
+      <shadows>true</shadows>
+      <sky></sky>
     </scene>
 
     <spherical_coordinates>

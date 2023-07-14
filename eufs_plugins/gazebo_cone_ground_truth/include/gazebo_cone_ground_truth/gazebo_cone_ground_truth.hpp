@@ -56,6 +56,9 @@
 #include <geometry_msgs/msg/point.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
+#include <ugrdv_common/PerceptionModel.hpp>
+#include <ugrdv_msgs/msg/cone3d_array.hpp>
+#include <ugrdv_common/api/ConeVis.hpp>
 
 #include "rclcpp/rclcpp.hpp"
 
@@ -116,6 +119,9 @@ class GazeboConeGroundTruth : public gazebo::ModelPlugin {
   // Add noise to the cone arrays
   eufs_msgs::msg::ConeArrayWithCovariance addNoisePerception(
       eufs_msgs::msg::ConeArrayWithCovariance &cones_message, ignition::math::Vector3d noise);
+  // like above, but using custom UGR perception models
+  ugrdv_msgs::msg::Cone3dArray addNoisePerceptionUGR(
+      eufs_msgs::msg::ConeArrayWithCovariance &cones_message, ugr::PerceptionModel& model);
   void addNoiseToConeArray(std::vector<eufs_msgs::msg::ConeWithCovariance> &cone_array,
                            ignition::math::Vector3d noise);
   double GaussianKernel(double mu, double sigma);
@@ -158,6 +164,10 @@ class GazeboConeGroundTruth : public gazebo::ModelPlugin {
 
   rclcpp::Publisher<eufs_msgs::msg::ConeArrayWithCovariance>::SharedPtr perception_cone_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr perception_cone_marker_pub_;
+
+  rclcpp::Publisher<ugrdv_msgs::msg::Cone3dArray>::SharedPtr ugrdv_perception_camera_pub, ugrdv_perception_lidar_pub;
+  std::shared_ptr<ugr::ConeVis> ugrdv_perception_camera_vis, ugrdv_perception_lidar_vis;
+
 
   // Services
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr

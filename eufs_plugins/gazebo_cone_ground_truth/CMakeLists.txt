@@ -9,7 +9,10 @@ ament_target_dependencies(gazebo_cone_ground_truth
   "eufs_msgs"
   "visualization_msgs"
   "geometry_msgs"
-  "ament_index_cpp")
+  "ament_index_cpp"
+  "ugrdv_msgs"
+  "ugrdv_common"
+)
 
 target_include_directories(gazebo_cone_ground_truth PUBLIC include)
 

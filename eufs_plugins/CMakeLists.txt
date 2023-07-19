@@ -36,6 +36,8 @@ find_package(visualization_msgs REQUIRED)
 find_package(eufs_models REQUIRED)
 find_package(ackermann_msgs REQUIRED)
 find_package(ament_index_cpp REQUIRED)
+find_package(ugrdv_msgs REQUIRED)
+find_package(ugrdv_common REQUIRED)
 
 link_directories(${gazebo_dev_LIBRARY_DIRS})
 

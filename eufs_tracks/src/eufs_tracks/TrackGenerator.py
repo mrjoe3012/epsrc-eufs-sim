@@ -1,7 +1,9 @@
-import math
-import random
+import math, random
+import numpy as np
 from rclpy.node import Node
 from scipy.special import binom
+from scipy.optimize import curve_fit
+from functools import partial
 from .LauncherUtilities import (calculate_tangent_angle, calculate_tangent_vector,
                                 cap_angle, normalize_vec, get_random_unit_vector, add_vectors,
                                 scale_vector, get_normal_vector, subtract_vectors, get_distance,
@@ -40,12 +42,12 @@ class GeneratorContext(Node):
     def __exit__(self, exc_type, exc_value, traceback):
         TrackGenerator.has_context = False
         if exc_type is GenerationFailedException:
-            self.get_logger().error(
-                "\nError!  The generator could not generate in time.\n"
-                + "Maybe try different parameters?\n"
-                + "Turning on Lax Generation and increasing MAX_STRAIGHT"
-                + " and MIN_STRAIGHT usually helps."
-            )
+            # self.get_logger().error(
+            #     "\nError!  The generator could not generate in time.\n"
+            #     + "Maybe try different parameters?\n"
+            #     + "Turning on Lax Generation and increasing MAX_STRAIGHT"
+            #     + " and MIN_STRAIGHT usually helps."
+            # )
             self.failed = True
             self.failure_function()
 
@@ -1974,3 +1976,70 @@ def parametric_circle(start_point, center_point, delta_angle):
 
     return Parametrization(
         lambda t: output(start_point, center_point, t * delta_angle))
+
+def fit_rmse(linef, xs, ys):
+    """
+    Utility function for calculating RMSE of a fit.
+    
+    :param linef: y=f(x) fit function.
+    :param xs: x data points.
+    :param ys: y data points.
+    :returns: Root mean square error.
+    """
+    assert len(xs) == len(ys)
+    N = len(xs)
+    rmse = 0.0
+    for i in range(N):
+        y_obs = ys[i]
+        y_pred = linef(xs[i])
+        rmse += (1 / N) * (y_obs - y_pred)**2
+    rmse = math.sqrt(rmse)
+    return rmse
+
+def get_start_point_info(xys, track_start, lookback_count=100, min_car_distance=6):
+    """
+    Takes in a track path and track start and determines
+    the angle of the path near that point as well as the
+    path point at which the car should be
+    placed in order for the car to start a legal distance.
+    
+    :param xys: The path points of the track.
+    :param car_start: The index of the path point representing the car start.
+    :param lookback_count: Number of path points back of given start point to use when calculating track angle.
+    :param min_car_distance: The minimum distance at which large orange cones will be placed in front of the car.
+    :returns: description
+    :raises AssertionError: When the provided car start index is too close to the end of the path array.
+    """
+    
+    track_start_x, track_start_y = xys[track_start]
+    # find closest point to track start that satisfies min_car_distance,
+    # if none exists use the farthest away point
+    car_start_idx = track_start
+    for i in range(len(xys)):
+        x, y = xys[car_start_idx]
+        sqr_dist = (x-track_start_x)**2 + (y-track_start_y)**2
+        car_start_idx = (car_start_idx - 1) % len(xys)
+        if sqr_dist >= min_car_distance**2: break
+    
+    # capture path shape near start
+    path_at_start = ([], [])
+    for i in range(lookback_count):
+        idx = (track_start - i) % len(xys)
+        path_at_start[0].insert(0, xys[idx][0])
+        path_at_start[1].insert(0, xys[idx][1])
+    # eqn of a line
+    linef = lambda x, m, c: m*x + c
+    # fit line to path shape near start
+    fit_params, _ = curve_fit(linef, path_at_start[0], path_at_start[1])
+    m, c = fit_params
+    # calculate RMSE of the fit (to determine if it's a good starting point)
+    fit_linef = partial(linef, m=m, c=c)
+    rmse = fit_rmse(fit_linef, path_at_start[0], path_at_start[1])
+    # determine start and end points of the line
+    sx, sy = path_at_start[0][0], fit_linef(path_at_start[0][0])
+    ex, ey = path_at_start[0][-1], fit_linef(path_at_start[0][-1])
+    # determine the vector and hence the track angle
+    angle = math.atan2(ey - sy, ex - sx)
+    # report angle in range [0, 2pi]
+    if angle < 0: angle += 2 * math.pi
+    return car_start_idx, angle, rmse

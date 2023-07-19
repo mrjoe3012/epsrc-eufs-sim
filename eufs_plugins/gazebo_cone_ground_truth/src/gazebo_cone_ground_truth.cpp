@@ -35,6 +35,8 @@
 #include "gazebo_cone_ground_truth/gazebo_cone_ground_truth.hpp"
 
 #include <cstdlib>
+#include <ugrdv_common/utils.hpp>
+#include <ugrdv_common/axis_conversions.hpp>
 
 namespace gazebo_plugins {
 namespace eufs_plugins {
@@ -187,6 +189,19 @@ void GazeboConeGroundTruth::Load(gazebo::physics::ModelPtr _parent, sdf::Element
   //  Store initial track
   this->initial_track = this->getConeArraysMessage();
 
+  // ugrdv perception cones
+  ugrdv_perception_lidar_vis = std::make_shared<ugr::ConeVis>(ugr::ConeVis(*rosnode_, UTILS_CONEGT_LIDAR_PERCEPTION_VIS_TOPIC));
+  ugrdv_perception_camera_vis = std::make_shared<ugr::ConeVis>(ugr::ConeVis(*rosnode_, UTILS_CONEGT_CAMERA_PERCEPTION_VIS_TOPIC));
+  ugrdv_perception_camera_pub = rosnode_->create_publisher<ugrdv_msgs::msg::Cone3dArray>(
+    UTILS_CONEGT_CAMERA_PERCEPTION_TOPIC,
+    1
+  );
+  ugrdv_perception_lidar_pub = rosnode_->create_publisher<ugrdv_msgs::msg::Cone3dArray>(
+    UTILS_CONEGT_LIDAR_PERCEPTION_TOPIC,
+    1
+  );
+ 
+
   RCLCPP_INFO(this->rosnode_->get_logger(), "ConeGroundTruthPlugin Loaded");
 }  // GazeboConeGroundTruth
 
@@ -201,19 +216,6 @@ void GazeboConeGroundTruth::UpdateChild() {
   // Update the time (This is here so that the time to publish all the messages does not affect the
   // update rate)
   this->time_last_published = cur_time;
-
-  // Check if there is a reason to publish the data
-  if (this->ground_truth_cone_pub_->get_subscription_count() == 0 &&
-      this->ground_truth_cone_marker_pub_->get_subscription_count() == 0 &&
-      this->ground_truth_track_pub_->get_subscription_count() == 0 &&
-      this->ground_truth_track_viz_pub_->get_subscription_count() == 0 &&
-      (!this->simulate_perception_ ||
-       (this->perception_cone_pub_->get_subscription_count() == 0 &&
-        this->perception_cone_marker_pub_->get_subscription_count() == 0))) {
-    RCLCPP_DEBUG(this->rosnode_->get_logger(),
-                 "Nobody is listening to cone_ground_truth. Doing nothing");
-    return;
-  }
 
   this->car_pos = this->car_link->WorldPose();
 
@@ -265,6 +267,20 @@ void GazeboConeGroundTruth::UpdateChild() {
     this->ground_truth_cone_marker_pub_->publish(ground_truth_cone_marker_array_message);
     this->prev_ground_truth_cone_markers_published = ground_truth_cone_markers_published;
   }
+
+  ugrdv_msgs::msg::Cone3dArray
+    cameraPerceptionMsg = addNoisePerceptionUGR(
+      ground_truth_cones_message,
+      ugr::cameraPerceptionModel
+    ),
+    lidarPerceptionMsg = addNoisePerceptionUGR(
+      ground_truth_cones_message,
+      ugr::lidarPerceptionModel
+    );
+    ugrdv_perception_camera_pub->publish(cameraPerceptionMsg);
+    ugrdv_perception_lidar_pub->publish(lidarPerceptionMsg);
+    ugrdv_perception_camera_vis->update(cameraPerceptionMsg, false);
+    ugrdv_perception_lidar_vis->update(lidarPerceptionMsg, false);
 
   // Publish the simulated perception cones if it has subscribers
   if (this->simulate_perception_ &&
@@ -667,6 +683,25 @@ eufs_msgs::msg::ConeArrayWithCovariance GazeboConeGroundTruth::addNoisePerceptio
   cones_message_with_noise.header.stamp.nanosec = this->time_last_published.nsec;
 
   return cones_message_with_noise;
+}
+
+ugrdv_msgs::msg::Cone3dArray GazeboConeGroundTruth::addNoisePerceptionUGR(
+    eufs_msgs::msg::ConeArrayWithCovariance &cones_message, ugr::PerceptionModel& model) {
+    ugrdv_msgs::msg::Cone3dArray perception;
+
+    static const double fov = 3.14; // fov used to generate false positives
+
+    ugrdv_msgs::msg::Cone3dArray gt =
+      ugr::convertEUFSCones(cones_message);
+    perception = model.simulatePerception(
+      gt,
+      fov
+    );
+    perception.header.frame_id = this->cone_frame_;
+    perception.header.stamp.sec = this->time_last_published.sec;
+    perception.header.stamp.nanosec = this->time_last_published.nsec;
+
+    return perception;
 }
 
 void GazeboConeGroundTruth::addNoiseToConeArray(

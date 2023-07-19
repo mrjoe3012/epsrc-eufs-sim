@@ -29,6 +29,8 @@ class EUFSLauncher(Plugin):
                 """
         super(EUFSLauncher, self).__init__(context)
 
+        self.launch_button_cb = self.launch_button_pressed_no_gen
+
         # Give QObjects reasonable names
         self.setObjectName('EUFSLauncher')
 
@@ -131,7 +133,7 @@ class EUFSLauncher(Plugin):
         self.load_track_dropdowns()
 
         # Hook up buttons to onclick functions
-        self.LAUNCH_BUTTON.clicked.connect(self.launch_button_pressed)
+        self.LAUNCH_BUTTON.clicked.connect(self.launch_button_cb)
 
         # Hook up refresh track button to onclick functions
         self.REFRESH_TRACK_BUTTON.clicked.connect(self.load_track_dropdowns)
@@ -291,7 +293,7 @@ class EUFSLauncher(Plugin):
         # If use_gui is false, we jump straight into launching the track
         # use_gui is a special variable set by `eufs_launcher.py`
         if not use_gui:
-            self.launch_button_pressed()
+            self.launch_button_cb()
 
     @staticmethod
     def setup_q_combo_box(q_combo_box, default_mode, modes):
@@ -422,6 +424,56 @@ class EUFSLauncher(Plugin):
     #     noise_level_widget.setValue(
     #         new_value
     #     )
+
+    def launch_button_pressed_no_gen(self):
+        """
+        Launches the simulation without regenerating anything,
+        just uses the pre-made files.
+        """
+        if self.has_launched_ros:
+            return
+        else:
+            self.has_launched_ros = True
+
+        self.logger.info("Launching nodes (no gen)...")
+
+        track_to_launch = self.TRACK_SELECTOR.currentText() + ".launch"
+
+        self.logger.info(
+            "With " + self.VEHICLE_MODEL_MENU.currentText() + " Vehicle Model "
+            + "using the " + self.COMMAND_MODE_MENU.currentText()
+            + " command mode. "
+            + "Vehicle model config file is "
+            + self.MODEL_CONFIGS[self.MODEL_PRESET_MENU.currentText()])
+
+        vehicle_model = "vehicleModel:=" + self.VEHICLE_MODEL_MENU.currentText()
+        command_mode = "commandMode:=" + self.COMMAND_MODE_MENU.currentText()
+        vehicle_model_config = "vehicleModelConfig:=" + self.MODEL_CONFIGS[self.MODEL_PRESET_MENU.currentText()]
+        parameters_to_pass = [
+            "track:=" + track_to_launch.split(".")[0],
+            vehicle_model,
+            command_mode,
+            vehicle_model_config
+        ]
+        for checkbox, param_if_on, param_if_off in self.checkbox_parameter_mapping:
+            if checkbox.isChecked():
+                parameters_to_pass.extend(param_if_on)
+            else:
+                parameters_to_pass.extend(param_if_off)
+
+        self.popen_process = self.launch_node_with_args(
+            "eufs_launcher",
+            "simulation.launch.py",
+            parameters_to_pass
+        )
+
+        for checkbox, effect_on, effect_off in self.checkbox_effect_mapping:
+            if checkbox.isChecked():
+                effect_on()
+            else:
+                effect_off()
+
+        self.LAUNCH_BUTTON.setEnabled(False)
 
     def launch_button_pressed(self):
         """Launches Gazebo."""

@@ -12,7 +12,8 @@
     <!-- WORLD SETINGS -->
     <scene>
       <ambient>1.0 1.0 1.0 1.0</ambient>
-      <shadows>false</shadows>
+      <shadows>true</shadows>
+      <sky></sky>
     </scene>
 
     <spherical_coordinates>
@@ -28,7 +29,7 @@
 
     <light name='sun' type='directional'>
       <cast_shadows>1</cast_shadows>
-      <pose frame=''>0 0 10 0 -0 0</pose>
+      <pose frame=''>0 0 10 -1.170682 -0.277326 1.156328</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
       <specular>0.1 0.1 0.1 1</specular>
       <attenuation>

@@ -6,7 +6,8 @@
   <xacro:include filename="$(find eufs_sensors)/urdf/gps.urdf.xacro"/>
 
   <!-- Velodyne VLP-16R -->
-  <xacro:include filename="$(find eufs_sensors)/urdf/VLP-16R.urdf.xacro"/>
+  <!-- <xacro:include filename="$(find eufs_sensors)/urdf/VLP-16R.urdf.xacro"/> -->
+  <xacro:include filename="$(find velodyne_description)/urdf/VLP-16.urdf.xacro"/>
 
   <!-- Imu -->
   <xacro:include filename="$(find eufs_sensors)/urdf/imu.urdf.xacro"/>

@@ -17,17 +17,33 @@
       <visual name='visual'>
         <geometry>
           <mesh>
-            <uri>file://cone_blue.dae</uri>
+            <uri>file://cone_small_notexture.dae</uri>
           </mesh>
         </geometry>
         <cast_shadows>1</cast_shadows>
+        <material>
+          <script>
+            <uri>file://gazebo.material</uri>
+            <name>Gazebo/BlueCone</name>
+          </script>
+        </material>
       </visual>
-      <collision name='collision'>
+      <collision name='collision1'>
         <max_contacts>3</max_contacts>
         <geometry>
           <mesh>
-            <uri>file://cone_blue.dae</uri>
+            <uri>file://cone_small_no_stripe.dae</uri>
           </mesh>
+          <laser_retro>0.1</laser_retro>
+        </geometry>
+      </collision>
+      <collision name='collision2'>
+        <max_contacts>3</max_contacts>
+        <geometry>
+          <mesh>
+            <uri>file://cone_small_stripe_only.dae</uri>
+          </mesh>
+          <laser_retro>0.2</laser_retro>
         </geometry>
       </collision>
     </link>

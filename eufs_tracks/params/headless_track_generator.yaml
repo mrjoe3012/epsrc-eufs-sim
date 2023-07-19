@@ -1,0 +1,37 @@
+headless_track_generator:
+  ros__parameters:
+    component_data_straight: 1.0
+    component_data_constant_turn: 1.0
+    component_data_hairpin_turn: 1.0
+    
+    generator_values_min_straight: 30.0
+    generator_values_min_straight_variation: 15.0
+    generator_values_max_straight: 65.0
+    generator_values_max_straight_variation: 15.0
+    generator_values_min_constant_turn: 12.5
+    generator_values_min_constant_turn_variation: 5.0
+    generator_values_max_constant_turn: 22.5
+    generator_values_max_constant_turn_variation: 2.5
+    generator_values_min_hairpin: 6.0
+    generator_values_min_hairpin_variation: 1.5
+    generator_values_max_hairpin: 15.0
+    generator_values_max_hairpin_variation: 5.0
+    generator_values_max_hairpin_pairs: 4
+    generator_values_max_hairpin_pairs_variation: 2
+    generator_values_max_length: 1000.0
+    generator_values_max_length_variation: 200.0  # total range of random variation
+    generator_values_lax_generation: False
+    generator_values_track_width: 3.5
+    generator_values_track_width_variation: 0.5
+
+    num_tracks_to_generate: 30
+
+    explore_starting_points: True  # whether or not to iterate through possible starting points
+    max_starting_point_error: 0.25  # controls maximum curvature at track starting point
+
+    # Append to report.json the information about tracks which were generated.
+    write_report: True
+    report_filename: report.json
+
+    use_custom_seed: True
+    custom_seed: 0

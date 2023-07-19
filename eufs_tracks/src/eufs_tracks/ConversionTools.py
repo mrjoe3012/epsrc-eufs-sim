@@ -8,6 +8,7 @@ from rclpy.node import Node
 import sys
 import pandas as pd
 from collections import OrderedDict
+import copy
 
 sys.path.insert(1, os.path.join(get_package_share_directory('eufs_tracks'),
                                 'csv'))  # nopep8
@@ -19,7 +20,9 @@ from .TrackGenerator import (  # noqa: E402
     CONE_START, NOISE
 )
 from .TrackGenerator import get_cone_function  # noqa: E402
+from .TrackGenerator import get_start_point_info
 
+class BadStartingPointError(Exception): pass
 
 # Here are all the track formats we care about:
 # .launch (well, we actually want the model data, not the .launch, but we'll
@@ -195,7 +198,8 @@ class ConversionTools(Node):
 
     @staticmethod
     def convert(cfrom, cto, which_file, params={}, conversion_suffix="",
-                override_name=None):
+                override_name=None, track_start_component_index=0,
+                max_starting_point_error=0.25):
         """
         Will convert which_file of filetype cfrom to filetype cto with
         filename which_file+conversion_suffix
@@ -240,7 +244,9 @@ class ConversionTools(Node):
                 which_file,
                 params,
                 conversion_suffix,
-                override_name
+                override_name,
+                track_start_component_index=track_start_component_index,
+                max_starting_point_error=max_starting_point_error
             )
         elif cfrom == "png" and cto == "launch":
             return ConversionTools.png_to_launch(
@@ -332,7 +338,8 @@ class ConversionTools(Node):
 
     @staticmethod
     def comps_to_csv(which_file, params, conversion_suffix="",
-                     override_name=None):
+                     override_name=None, track_start_component_index=0,
+                     max_starting_point_error=0.25):
         """
         Converts raw track generator output to csv.
 
@@ -351,37 +358,34 @@ class ConversionTools(Node):
         # Unpack
         (components, twidth, theight) = params["track data"]
 
-        xys = compactify_points([
-            (int(x[0]), int(x[1])) for x
-            in ConversionTools.get_points_from_component_list(components)
-        ])
+        xys = ConversionTools.get_points_from_component_list(components)
 
-        # We want to calculate direction of car position
-        sx = xys[0][0]
-        sy = xys[0][1]
-        ex = xys[1][0]
-        ey = xys[1][1]
+        # determine track start path index from the component index
+        track_start_idx = 0
+        for i,component in enumerate(components):
+            if i == track_start_component_index: break
+            points = component[1]
+            track_start_idx += len(points)
 
-        # So we calculate the angle that the car is facing (the yaw)
-        angle = math.atan2(ey - sy, ex - sx)
-        if angle < 0:
-            # Angle is on range [-pi,pi] but we want [0,2pi]
-            # So if it is less than 0, pop it onto the correct range.
-            angle += 2 * math.pi
+        # finding start heading and position
+        car_start_idx, angle, rmse = get_start_point_info(xys, track_start_idx)
+        car_x, car_y = xys[car_start_idx]
 
-        # Now we get the car position
-        car_x, car_y = (sx, sy)
+        if rmse >= max_starting_point_error: raise BadStartingPointError()
 
-        # And now the cone locations
+        # get cone locations, starting from the component
+        # at which we were told to start from
         cone_locs = []
-        for idx, tup in enumerate(components):
-            (name, points) = tup
-            if idx == 0:
+        idx = track_start_component_index
+        for _ in range(len(components)):
+            name, points = components[idx]
+            if idx == track_start_component_index:
                 cone_locs.extend(cone_start(points))
             else:
                 cone_locs.extend(
                     get_cone_function(name)(points, prev_points=cone_locs)
                 )
+            idx = (idx + 1) % len(components)
 
         # Get the right csv tags
         def name_from_color(c):
@@ -1952,3 +1956,24 @@ class ConversionTools(Node):
         writer.write(data)
         reader.close()
         writer.close()
+
+    #########################################################
+    #                         Other                        #
+    #########################################################
+
+    @staticmethod
+    def reverse_track(xys, twidth, theight):
+        """
+        Takes track data and reverses the track.
+        
+        :param xys: components
+        :param twidth: track width
+        :param theight: track height
+        :returns: (xys, twidth, theight)
+        """
+
+        new_xys = [
+            (comp[0], copy.deepcopy(comp[1])[::-1]) for comp in xys
+        ]
+        new_xys.reverse()
+        return new_xys, twidth, theight

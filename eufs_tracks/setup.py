@@ -10,6 +10,7 @@ data_files = [
     (share_directory, ['package.xml', 'plugin.xml']),
     ('share/ament_index/resource_index/packages',
         ['resource/' + package_name]),
+    (join(share_directory, 'params'), glob('params/*')),
     (join(share_directory, 'csv'), glob('csv/*')),
     (join(share_directory, 'image'), glob('image/*')),
     (join(share_directory, 'launch'),
@@ -47,4 +48,9 @@ setup(
     license='MIT',
     tests_require=['pytest'],
     scripts=['scripts/eufs_tracks'],
+    entry_points={
+        'console_scripts' : [
+            'headless_track_generator = eufs_tracks.HeadlessTrackGenerator:main'
+        ],
+    },
 )

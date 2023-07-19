@@ -1061,7 +1061,7 @@ material Gazebo/Asphalt
       {
         texture asphalt.jpg
         filtering trilinear
-        scale .01 .01
+        scale .001 .001
       }
     }
   }
@@ -1079,6 +1079,54 @@ material Gazebo/CarTexture
         texture Car_Texture.jpg
         filtering trilinear
         scale .01 .01
+      }
+    }
+  }
+}
+
+material Gazebo/BlueCone
+{
+  technique
+  {
+    pass
+    {
+      specular 1.0 1.0 1.0 
+      texture_unit
+      {
+        texture blue_cone.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/YellowCone
+{
+  technique
+  {
+    pass
+    {
+      specular 1.0 1.0 1.0
+      texture_unit
+      {
+        texture yellow_cone.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/OrangeCone
+{
+  technique
+  {
+    pass
+    {
+      specular 1.0 1.0 1.0
+      texture_unit
+      {
+        texture orange_cone.png
+        filtering trilinear
       }
     }
   }

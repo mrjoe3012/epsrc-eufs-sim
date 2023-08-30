@@ -24,7 +24,7 @@ headless_track_generator:
     generator_values_track_width: 3.5
     generator_values_track_width_variation: 0.5
 
-    num_tracks_to_generate: 30
+    num_tracks_to_generate: 10
 
     explore_starting_points: True  # whether or not to iterate through possible starting points
     max_starting_point_error: 0.25  # controls maximum curvature at track starting point
